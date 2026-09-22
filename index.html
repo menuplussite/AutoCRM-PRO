@@ -1,1294 +1,1780 @@
-
 <!DOCTYPE html>
-<html lang="ar" dir="rtl" class="dark">
+<html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AutoCRM - نظام إدارة مبيعات وتقسيط السيارات</title>
-    
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        // Custom Palette: Black, White, Maroon (نبيتي), Dark Red (احمر غامق)
-                        primary: '#000000',      // Pure Black
-                        panel: '#0a0a0a',        // Very Dark Grey for cards
-                        maroon: {
-                            DEFAULT: '#580f1c',  // النبيتي الأساسي
-                            dark: '#3d0812',     // نبيتي داكن جداً
-                            light: '#7a1527'     // نبيتي فاتح
-                        },
-                        darkred: {
-                            DEFAULT: '#8b0000',  // أحمر غامق
-                            light: '#a30000',
-                            accent: '#dc2626'    // أحمر ساطع للتنبيهات واللمسات
-                        },
-                        offwhite: '#f3f4f6',     // أبيض مكسور للقراءة المريحة
-                        bordercolor: '#2a0a0f'   // لون حدود نبيتي داكن جداً
-                    },
-                    fontFamily: {
-                        cairo: ['Cairo', 'sans-serif']
-                    }
-                }
-            }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoCRM - نظام إدارة مبيعات وتقسيط السيارات</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+    theme: {
+        extend: {
+            colors: {
+                'navy': { DEFAULT: '#1e3a8a', dark: '#1e40af', light: '#3b82f6', pale: '#dbeafe' },
+                'sky': { DEFAULT: '#0ea5e9', light: '#7dd3fc' },
+                'panel': '#ffffff',
+                'page': '#eef2f7',
+                'ink': { DEFAULT: '#0f172a', muted: '#64748b', light: '#94a3b8' }
+            },
+            fontFamily: { cairo: ['Cairo', 'sans-serif'] }
         }
-    </script>
-    
-    <!-- Google Fonts Cairo -->
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
-    <!-- Chart.js CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- FontAwesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        * { font-family: 'Cairo', sans-serif; }
-        
-        body {
-            background-color: #000000; /* Pure Black Background */
-            color: #ffffff; /* White Text */
-        }
+    }
+}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+    * { font-family: 'Cairo', sans-serif; }
+    body { background: #eef2f7; color: #0f172a; }
 
-        /* Redesigned Glass effect using Black and Maroon tints */
-        .glass-panel {
-            background: linear-gradient(145deg, #0a0a0a 0%, #110204 100%);
-            border: 1px solid #3d0812; /* Maroon Dark Border */
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-        }
+    .panel {
+        background: #ffffff;
+        border: 1px solid #dbe3ec;
+        border-radius: 6px;
+        box-shadow: 0 1px 3px rgba(30, 58, 138, 0.06);
+    }
+    .panel-hover:hover { box-shadow: 0 4px 12px rgba(30, 58, 138, 0.12); }
 
-        /* Custom scrollbar - Red & Black theme */
-        ::-webkit-scrollbar { width: 5px; height: 5px; }
-        ::-webkit-scrollbar-track { background: #000000; }
-        ::-webkit-scrollbar-thumb { background: #580f1c; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #8b0000; }
-        
-        /* Timeline specific styles */
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            right: 19px;
-            top: 36px;
-            bottom: -16px;
-            width: 2px;
-            background: #3d0812; /* Maroon dark line */
-        }
-        .timeline-item:last-child::before { display: none; }
-        
-        /* New Active Nav Style */
-        .active-nav {
-            background: linear-gradient(90deg, #580f1c 0%, #3d0812 100%) !important;
-            color: #ffffff !important;
-            border-right: 4px solid #8b0000 !important;
-            box-shadow: 0 0 15px rgba(139, 0, 0, 0.2);
-        }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #e2e8f0; }
+    ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #1e40af; }
 
-        /* Input focus transitions */
-        input:focus, select:focus, textarea:focus {
-            box-shadow: 0 0 0 1px #8b0000;
-        }
-    </style>
+    .active-nav {
+        background: linear-gradient(90deg, #1e40af 0%, #1e3a8a 100%) !important;
+        color: #ffffff !important;
+        border-right: 4px solid #3b82f6 !important;
+        box-shadow: 0 4px 15px rgba(30, 64, 175, 0.25);
+    }
+
+    input:focus, select:focus, textarea:focus {
+        outline: none;
+        border-color: #3b82f6 !important;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);
+        color: #fff; font-weight: 800;
+        transition: all 0.2s;
+    }
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(30, 64, 175, 0.3);
+    }
+    .btn-secondary {
+        background: #ffffff; color: #1e40af;
+        border: 1px solid #93b4e0; font-weight: 800;
+        transition: all 0.2s;
+    }
+    .btn-secondary:hover { background: #dbeafe; }
+    .btn-danger {
+        background: #dc2626; color: #fff; font-weight: 800;
+    }
+    .btn-danger:hover { background: #b91c1c; }
+
+    .timeline-item { position: relative; padding-right: 40px; }
+    .timeline-item::before {
+        content: ''; position: absolute; right: 11px; top: 30px; bottom: -18px;
+        width: 2px; background: #cbd5e1;
+    }
+    .timeline-item:last-child::before { display: none; }
+    .timeline-dot {
+        position: absolute; right: 4px; top: 6px;
+        width: 18px; height: 18px; border-radius: 50%;
+        background: #3b82f6; border: 3px solid #dbeafe;
+    }
+
+    .badge { display: inline-block; padding: 3px 10px; font-size: 11px; font-weight: 800; border-radius: 4px; }
+    .badge-green { background: #dcfce7; color: #15803d; }
+    .badge-yellow { background: #fef3c7; color: #a16207; }
+    .badge-blue { background: #dbeafe; color: #1e40af; }
+    .badge-red { background: #fee2e2; color: #b91c1c; }
+    .badge-gray { background: #e5e7eb; color: #4b5563; }
+    .badge-purple { background: #ede9fe; color: #6d28d9; }
+
+    .toast-anim { animation: slideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+    @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+    .modal-backdrop { backdrop-filter: blur(4px); background: rgba(15, 23, 42, 0.5); }
+    .modal-anim { animation: modalPop 0.25s ease; }
+    @keyframes modalPop { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .stat-card { transition: all 0.2s; }
+    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(30, 64, 175, 0.15); }
+
+    .role-tag { display:inline-block; padding:2px 8px; border-radius: 99px; font-size: 10px; font-weight: 900; }
+    .role-manager { background: linear-gradient(135deg,#7c3aed,#6d28d9); color: #fff; }
+    .role-employee { background: linear-gradient(135deg,#0891b2,#0e7490); color: #fff; }
+</style>
 </head>
-<body class="min-h-screen flex flex-col antialiased selection:bg-darkred selection:text-white">
+<body class="min-h-screen flex flex-col antialiased">
 
-    <div id="toastContainer" class="fixed top-5 left-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+<div id="toastContainer" class="fixed top-5 left-5 z-[100] flex flex-col gap-2 pointer-events-none"></div>
 
-    <!-- Login Screen -->
-    <div id="loginScreen" class="fixed inset-0 z-50 bg-primary hidden items-center justify-center p-4">
-        <div class="bg-panel border border-maroon w-full max-w-md shadow-2xl shadow-darkred/20 overflow-hidden flex flex-col">
-            <!-- Tabs for Admin vs Customer -->
-            <div class="flex">
-                <button type="button" id="tabAdminLogin" onclick="setLoginType('admin')" class="flex-1 py-4 text-sm font-black uppercase tracking-wider bg-darkred text-white transition-colors">بوابة الإدارة</button>
-                <button type="button" id="tabCustomerLogin" onclick="setLoginType('customer')" class="flex-1 py-4 text-sm font-black uppercase tracking-wider bg-panel text-gray-500 hover:text-white transition-colors border-b border-maroon-dark">بوابة العملاء</button>
-            </div>
-            
-            <div class="p-8">
-                <div class="text-center mb-8">
-                    <div class="w-16 h-16 rounded-sm bg-maroon flex items-center justify-center border border-darkred mx-auto mb-4 shadow-md shadow-darkred/20">
-                        <i class="fa-solid fa-car-side text-white text-3xl"></i>
-                    </div>
-                    <h1 class="font-black text-2xl tracking-wider text-white uppercase mb-1">AUTO<span class="text-darkred">CRM</span></h1>
-                    <p id="loginSubtitle" class="text-[10px] text-gray-400 tracking-widest uppercase">تسجيل دخول الموظفين</p>
+<!-- ==================== LOGIN ==================== -->
+<div id="loginScreen" class="fixed inset-0 z-50 bg-gradient-to-br from-blue-50 via-white to-blue-100 hidden items-center justify-center p-4">
+    <div class="bg-white border border-blue-200 w-full max-w-md shadow-2xl shadow-blue-900/20 overflow-hidden rounded-lg">
+        <div class="flex">
+            <button type="button" id="tabAdminLogin" onclick="setLoginType('admin')" class="flex-1 py-4 text-sm font-black uppercase tracking-wider bg-navy-dark text-white transition-colors">بوابة الإدارة</button>
+            <button type="button" id="tabCustomerLogin" onclick="setLoginType('customer')" class="flex-1 py-4 text-sm font-black uppercase tracking-wider bg-gray-100 text-gray-500 hover:text-navy transition-colors">بوابة العملاء</button>
+        </div>
+        <div class="p-8">
+            <div class="text-center mb-8">
+                <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-navy-dark to-navy flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-900/30">
+                    <i class="fa-solid fa-car-side text-white text-3xl"></i>
                 </div>
-                <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-6">
-                    <div>
-                        <label id="loginUserLabel" class="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest">اسم المستخدم</label>
-                        <div class="relative">
-                            <i id="loginUserIcon" class="fa-solid fa-user absolute right-4 top-3.5 text-gray-500"></i>
-                            <input type="text" id="loginUser" required class="w-full pl-4 pr-11 py-3 bg-primary border border-maroon-dark text-white text-sm focus:outline-none focus:border-darkred transition-all" placeholder="اسم المستخدم">
-                        </div>
+                <h1 class="font-black text-2xl tracking-wider text-navy-dark uppercase mb-1">AUTO<span class="text-sky">CRM</span></h1>
+                <p id="loginSubtitle" class="text-[11px] text-gray-500 tracking-widest uppercase font-bold">تسجيل دخول الموظفين</p>
+            </div>
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-5">
+                <div>
+                    <label id="loginUserLabel" class="block text-xs font-black text-ink-muted mb-2 uppercase tracking-widest">اسم المستخدم</label>
+                    <div class="relative">
+                        <i id="loginUserIcon" class="fa-solid fa-user absolute right-4 top-3.5 text-gray-400"></i>
+                        <input type="text" id="loginUser" required class="w-full pl-4 pr-11 py-3 bg-page border border-gray-300 text-ink text-sm rounded" placeholder="اسم المستخدم">
                     </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-400 mb-2 uppercase tracking-widest">كلمة المرور</label>
-                        <div class="relative">
-                            <i class="fa-solid fa-lock absolute right-4 top-3.5 text-gray-500"></i>
-                            <input type="password" id="loginPass" required class="w-full pl-4 pr-11 py-3 bg-primary border border-maroon-dark text-white text-sm focus:outline-none focus:border-darkred transition-all" placeholder="***">
-                        </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-black text-ink-muted mb-2 uppercase tracking-widest">كلمة المرور</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-lock absolute right-4 top-3.5 text-gray-400"></i>
+                        <input type="password" id="loginPass" required class="w-full pl-4 pr-11 py-3 bg-page border border-gray-300 text-ink text-sm rounded" placeholder="***">
                     </div>
-                    <button type="submit" id="loginBtnText" class="w-full bg-darkred hover:bg-darkred-light py-3 text-white font-black text-sm uppercase tracking-wider transition-all mt-4 shadow-lg shadow-darkred/20">
-                        دخول للإدارة
-                    </button>
-                </form>
+                </div>
+                <button type="submit" id="loginBtnText" class="btn-primary w-full py-3 text-sm uppercase tracking-wider rounded">دخول للإدارة</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== HEADER ==================== -->
+<header id="mainHeader" class="sticky top-0 z-40 bg-white border-b border-gray-200 px-4 py-3 items-center justify-between shadow-sm hidden">
+    <div class="flex items-center gap-4">
+        <button id="toggleSidebar" onclick="toggleSidebar()" class="lg:hidden text-gray-500 hover:text-navy p-2">
+            <i class="fa-solid fa-bars text-xl"></i>
+        </button>
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-navy-dark to-navy flex items-center justify-center shadow-md">
+                <i class="fa-solid fa-car-side text-white text-xl"></i>
+            </div>
+            <div>
+                <h1 class="font-black text-xl tracking-wider text-navy-dark uppercase">AUTO<span class="text-sky">CRM</span></h1>
+                <p class="text-[10px] text-gray-500 tracking-widest font-bold">LUXURY MOTORS EDITION</p>
             </div>
         </div>
     </div>
 
-    <!-- Top Header -->
-    <header id="mainHeader" class="sticky top-0 z-40 bg-primary border-b border-maroon-dark px-4 py-3 flex items-center justify-between shadow-lg shadow-black">
-        <div class="flex items-center gap-4">
-            <button id="toggleSidebar" class="lg:hidden text-gray-400 hover:text-white p-2">
-                <i class="fa-solid fa-bars text-xl"></i>
-            </button>
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-sm bg-maroon flex items-center justify-center border border-darkred shadow-md shadow-darkred/20">
-                    <i class="fa-solid fa-car-side text-white text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="font-black text-xl tracking-wider text-white uppercase">AUTO<span class="text-darkred">CRM</span></h1>
-                    <p class="text-[10px] text-gray-400 tracking-widest">LUXURY MOTORS EDITION</p>
-                </div>
-            </div>
+    <div class="hidden md:flex items-center flex-1 max-w-md mx-8">
+        <div class="relative w-full">
+            <i class="fa-solid fa-search absolute right-4 top-3 text-gray-400"></i>
+            <input type="text" id="globalPhoneSearchInput" placeholder="بحث بالهاتف / الاسم / الرقم القومي..." onkeydown="if(event.key==='Enter'){event.preventDefault();handleGlobalSearch();}"
+                   class="w-full pl-4 pr-11 py-2.5 bg-page border border-gray-300 text-sm rounded">
+            <button onclick="handleGlobalSearch()" class="absolute left-1 top-1 bottom-1 btn-primary text-xs px-4 rounded uppercase tracking-wider">بحث</button>
         </div>
+    </div>
 
-        <!-- Search Bar -->
-        <div class="hidden md:flex items-center flex-1 max-w-md mx-8">
-            <div class="relative w-full">
-                <i class="fa-solid fa-search absolute right-4 top-3 text-gray-500"></i>
-                <input type="text" id="globalPhoneSearchInput" placeholder="بحث برقم الهاتف..." 
-                       class="w-full pl-4 pr-11 py-2.5 rounded-none bg-panel border border-maroon-dark text-sm text-white focus:outline-none focus:border-darkred transition-all">
-                <button onclick="handleGlobalSearch()" class="absolute left-1 top-1 bottom-1 bg-maroon hover:bg-darkred text-white text-xs px-4 transition-all uppercase tracking-wider font-bold">
-                    بحث
+    <div class="flex items-center gap-3">
+        <button onclick="switchTab('tasks')" class="relative p-2 text-gray-500 hover:text-navy transition-all">
+            <i class="fa-solid fa-bell text-lg"></i>
+            <span id="pendingTasksBadge" class="absolute -top-1 -left-1 bg-red-500 text-white text-[10px] font-black w-5 h-5 rounded-full flex items-center justify-center">0</span>
+        </button>
+        <div class="flex items-center gap-3 border-r border-gray-200 pr-3">
+            <div class="text-left hidden xl:block">
+                <div id="headerUserName" class="text-sm font-black text-ink">-</div>
+                <div id="headerUserRole" class="text-[10px] text-sky font-black uppercase tracking-wider">-</div>
+            </div>
+            <div id="headerUserInitials" class="w-10 h-10 rounded-lg bg-gradient-to-br from-navy-dark to-sky flex items-center justify-center font-black text-white uppercase shadow">-</div>
+        </div>
+        <button onclick="handleLogout()" class="text-gray-400 hover:text-red-500 transition-colors px-2" title="خروج">
+            <i class="fa-solid fa-right-from-bracket text-lg"></i>
+        </button>
+    </div>
+</header>
+
+<!-- ==================== MAIN LAYOUT ==================== -->
+<div id="mainLayout" class="flex-1 overflow-hidden relative hidden">
+    <aside id="sidebar" class="w-64 bg-white border-l border-gray-200 flex flex-col justify-between shrink-0 transition-all duration-300 absolute lg:relative z-30 h-[calc(100vh-69px)] -right-64 lg:right-0">
+        <div class="p-4 space-y-2 overflow-y-auto">
+            <div class="text-[10px] font-black text-gray-400 px-2 uppercase tracking-widest mb-4">القائمة الرئيسية</div>
+
+            <button onclick="switchTab('dashboard')" class="nav-btn active-nav w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-page transition-all rounded" data-tab="dashboard">
+                <i class="fa-solid fa-chart-line w-5 text-center"></i><span>لوحة التحكم</span>
+            </button>
+            <button onclick="switchTab('search')" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-page transition-all rounded" data-tab="search">
+                <i class="fa-solid fa-users w-5 text-center"></i><span>سجل العملاء</span>
+            </button>
+            <button onclick="openCustomerModal()" class="btn-primary w-full flex items-center gap-4 px-4 py-3 text-sm my-4 rounded">
+                <i class="fa-solid fa-plus w-5 text-center"></i><span>إضافة عميل جديد</span>
+            </button>
+            <button onclick="switchTab('tasks')" class="nav-btn w-full flex items-center justify-between px-4 py-3 text-sm font-bold text-gray-600 hover:bg-page transition-all rounded" data-tab="tasks">
+                <div class="flex items-center gap-4"><i class="fa-solid fa-clipboard-list w-5 text-center"></i><span>المهام والمتابعات</span></div>
+                <span id="navTasksCount" class="hidden bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-black">0</span>
+            </button>
+            <button onclick="switchTab('analytics')" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-page transition-all rounded" data-tab="analytics">
+                <i class="fa-solid fa-chart-pie w-5 text-center"></i><span>التقارير</span>
+            </button>
+
+            <div id="adminSection" class="hidden">
+                <div class="text-[10px] font-black text-gray-400 px-2 uppercase tracking-widest pt-6 mb-4">إدارة المدير</div>
+                <button onclick="switchTab('employees')" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-page transition-all rounded" data-tab="employees">
+                    <i class="fa-solid fa-user-tie w-5 text-center"></i><span>إدارة الموظفين</span>
+                </button>
+                <button onclick="switchTab('activity')" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-page transition-all rounded" data-tab="activity">
+                    <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i><span>سجل النشاط</span>
+                </button>
+                <button onclick="switchTab('settings')" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-page transition-all rounded" data-tab="settings">
+                    <i class="fa-solid fa-sliders w-5 text-center"></i><span>إعدادات النظام</span>
+                </button>
+            </div>
+
+            <div id="employeeSection" class="hidden">
+                <div class="text-[10px] font-black text-gray-400 px-2 uppercase tracking-widest pt-6 mb-4">حسابي</div>
+                <button onclick="switchTab('myactivity')" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-page transition-all rounded" data-tab="myactivity">
+                    <i class="fa-solid fa-clock-rotate-left w-5 text-center"></i><span>نشاطي</span>
                 </button>
             </div>
         </div>
+        <div class="p-4 border-t border-gray-200 text-center">
+            <span class="text-[10px] text-gray-400 font-black uppercase tracking-widest">AutoCRM v5.0</span>
+        </div>
+    </aside>
 
-        <!-- Header Controls -->
-        <div class="flex items-center gap-4">
-            <button onclick="switchTab('tasks')" class="relative p-2 text-gray-300 hover:text-white transition-all">
-                <i class="fa-solid fa-bell text-lg"></i>
-                <span id="pendingTasksBadge" class="absolute -top-1 -left-1 bg-white text-black text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">0</span>
-            </button>
+    <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-page">
 
-            <div class="flex items-center gap-3 border-r border-maroon-dark pr-4">
-                <div class="text-left hidden xl:block">
-                    <div id="headerUserName" class="text-sm font-bold text-white">تسجيل الدخول</div>
-                    <div id="headerUserRole" class="text-[10px] text-darkred uppercase tracking-wider">-</div>
+        <!-- ============ DASHBOARD ============ -->
+        <section id="tab-dashboard" class="tab-content space-y-6">
+            <div class="panel p-4 relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-4 border-t-4 border-t-navy-dark">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center"><i class="fa-solid fa-user-tie text-navy text-xl"></i></div>
+                    <div>
+                        <div class="text-xs font-black text-ink-muted uppercase">مرحباً بك</div>
+                        <div id="dashWelcomeName" class="text-lg font-black text-navy-dark">-</div>
+                    </div>
                 </div>
-                <div id="headerUserInitials" class="w-10 h-10 rounded-none bg-panel border border-darkred flex items-center justify-center font-black text-white uppercase">
-                    -
+                <button onclick="openCustomerModal()" class="btn-primary text-base px-6 py-3 flex items-center gap-3 rounded w-full md:w-auto justify-center">
+                    <i class="fa-solid fa-plus"></i> إضافة عميل جديد
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="panel stat-card p-5 border-t-4 border-t-sky">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="text-xs font-black text-ink-muted uppercase tracking-widest">إجمالي العملاء</div>
+                        <i class="fa-solid fa-users text-sky text-xl"></i>
+                    </div>
+                    <div class="text-4xl font-black text-navy-dark" id="kpiTotalCustomers">0</div>
+                </div>
+                <div class="panel stat-card p-5 border-t-4 border-t-green-500">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="text-xs font-black text-ink-muted uppercase tracking-widest">مبيعات منفذة</div>
+                        <i class="fa-solid fa-check-double text-green-600 text-xl"></i>
+                    </div>
+                    <div class="text-4xl font-black text-green-700" id="kpiSalesDone">0</div>
+                </div>
+                <div class="panel stat-card p-5 border-t-4 border-t-amber-500">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="text-xs font-black text-ink-muted uppercase tracking-widest">إجمالي المديونية</div>
+                        <i class="fa-solid fa-money-bill-wave text-amber-600 text-xl"></i>
+                    </div>
+                    <div class="flex items-baseline gap-1">
+                        <div class="text-3xl font-black text-amber-700" id="kpiTotalDebt">0</div>
+                        <span class="text-sm font-bold text-gray-500">ج.م</span>
+                    </div>
+                </div>
+                <div class="stat-card p-5 rounded border-t-4 border-t-red-500 bg-gradient-to-br from-navy-dark to-navy text-white shadow-lg">
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="text-xs font-black text-white/80 uppercase tracking-widest">متابعات اليوم</div>
+                        <i class="fa-solid fa-clock text-white text-xl"></i>
+                    </div>
+                    <div class="text-4xl font-black" id="kpiTodayTasks">0</div>
                 </div>
             </div>
-            
-            <!-- زر تسجيل الخروج -->
-            <button onclick="handleLogout()" class="text-gray-400 hover:text-darkred transition-colors px-2" title="تسجيل الخروج">
-                <i class="fa-solid fa-right-from-bracket text-lg"></i>
-            </button>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div class="panel p-5 lg:col-span-2">
+                    <div class="flex justify-between items-center mb-5 pb-3 border-b border-gray-200">
+                        <h3 class="font-black text-base text-navy-dark"><i class="fa-solid fa-list-check text-sky ml-2"></i>مهام ومتابعات اليوم</h3>
+                    </div>
+                    <div class="space-y-3" id="dashboardTasksList"></div>
+                </div>
+                <div class="panel p-5">
+                    <h3 class="font-black text-base text-navy-dark mb-2"><i class="fa-solid fa-bolt text-sky ml-2"></i>استعلام سريع</h3>
+                    <p class="text-xs text-gray-500 mb-5 font-bold">ابحث برقم الهاتف / الاسم / الرقم القومي</p>
+                    <div class="space-y-3">
+                        <input type="text" id="dashPhoneInput" placeholder="رقم الهاتف / الاسم..." onkeydown="if(event.key==='Enter'){event.preventDefault();searchCustomerFromDash();}" class="w-full px-4 py-3 bg-page border border-gray-300 text-ink text-sm rounded">
+                        <button onclick="searchCustomerFromDash()" class="btn-primary w-full py-3 text-sm uppercase tracking-wider rounded">بحث الآن</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ SEARCH ============ -->
+        <section id="tab-search" class="tab-content hidden space-y-5">
+            <div class="panel p-5 border-r-4 border-r-navy-dark">
+                <h2 class="text-xl font-black mb-5 text-navy-dark">البحث الشامل في السجلات</h2>
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-search absolute right-4 top-3.5 text-gray-400"></i>
+                        <input type="text" id="mainSearchPhone" placeholder="بحث بالهاتف الأساسي، البديل، الاسم، أو الرقم القومي..." onkeydown="if(event.key==='Enter'){event.preventDefault();executeCustomerSearch();}"
+                               class="w-full pl-4 pr-12 py-3 bg-page border border-gray-300 text-ink text-sm rounded">
+                    </div>
+                    <button onclick="executeCustomerSearch()" class="btn-primary px-8 py-3 text-sm rounded uppercase tracking-wider">بحث</button>
+                </div>
+            </div>
+            <div id="searchResultsArea"></div>
+        </section>
+
+        <!-- ============ TASKS ============ -->
+        <section id="tab-tasks" class="tab-content hidden space-y-5">
+            <h2 class="text-xl font-black text-navy-dark border-b border-gray-200 pb-3">إدارة المهام والمتابعات</h2>
+            <div class="panel p-5">
+                <div class="space-y-3" id="fullTasksContainer"></div>
+            </div>
+        </section>
+
+        <!-- ============ ANALYTICS ============ -->
+        <section id="tab-analytics" class="tab-content hidden space-y-5">
+            <div class="flex justify-between items-center border-b border-gray-200 pb-3">
+                <h2 class="text-xl font-black text-navy-dark">التقارير والإحصائيات</h2>
+                <button onclick="initCharts()" class="btn-primary px-4 py-2 text-xs rounded uppercase tracking-widest">تحديث</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div class="panel p-5 h-80 flex flex-col">
+                    <h3 class="font-black text-sm mb-3 text-ink-muted uppercase tracking-widest">حالة المبيعات</h3>
+                    <div class="flex-1 relative"><canvas id="chartStatus"></canvas></div>
+                </div>
+                <div class="panel p-5 h-80 flex flex-col">
+                    <h3 class="font-black text-sm mb-3 text-ink-muted uppercase tracking-widest">التوزيع الجغرافي</h3>
+                    <div class="flex-1 relative"><canvas id="chartGov"></canvas></div>
+                </div>
+                <div class="panel p-5 h-80 flex flex-col md:col-span-2">
+                    <h3 class="font-black text-sm mb-3 text-ink-muted uppercase tracking-widest">المركبات الأكثر طلباً</h3>
+                    <div class="flex-1 relative"><canvas id="chartVehicles"></canvas></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ============ EMPLOYEES ============ -->
+        <section id="tab-employees" class="tab-content hidden space-y-5">
+            <div class="flex justify-between items-center border-b border-gray-200 pb-3">
+                <h2 class="text-xl font-black text-navy-dark"><i class="fa-solid fa-user-tie text-navy ml-2"></i>إدارة الموظفين</h2>
+                <button onclick="openEmployeeModal()" class="btn-primary px-5 py-2 text-xs rounded uppercase tracking-widest"><i class="fa-solid fa-plus ml-1"></i> إضافة موظف</button>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="panel p-5 border-t-4 border-t-navy">
+                    <div class="text-xs font-black text-ink-muted uppercase tracking-widest mb-2">إجمالي الموظفين</div>
+                    <div class="text-3xl font-black text-navy-dark" id="kpiTotalEmployees">0</div>
+                </div>
+                <div class="panel p-5 border-t-4 border-t-green-500">
+                    <div class="text-xs font-black text-ink-muted uppercase tracking-widest mb-2">نشط اليوم</div>
+                    <div class="text-3xl font-black text-green-700" id="kpiActiveToday">0</div>
+                </div>
+                <div class="panel p-5 border-t-4 border-t-sky">
+                    <div class="text-xs font-black text-ink-muted uppercase tracking-widest mb-2">عدد عمليات اليوم</div>
+                    <div class="text-3xl font-black text-sky" id="kpiTodayActions">0</div>
+                </div>
+            </div>
+
+            <div class="panel p-5">
+                <h3 class="font-black text-navy-dark mb-4">قائمة الموظفين</h3>
+                <div id="employeesListContainer" class="space-y-3"></div>
+            </div>
+        </section>
+
+        <!-- ============ ACTIVITY LOG (MANAGER) ============ -->
+        <section id="tab-activity" class="tab-content hidden space-y-5">
+            <div class="flex flex-wrap justify-between items-center gap-3 border-b border-gray-200 pb-3">
+                <h2 class="text-xl font-black text-navy-dark">سجل النشاط الكامل</h2>
+                <div class="flex flex-wrap gap-2 items-center">
+                    <select id="activityFilterUser" onchange="renderActivityLog()" class="px-3 py-2 bg-page border border-gray-300 text-sm rounded">
+                        <option value="">كل الموظفين</option>
+                    </select>
+                    <select id="activityFilterType" onchange="renderActivityLog()" class="px-3 py-2 bg-page border border-gray-300 text-sm rounded">
+                        <option value="">كل العمليات</option>
+                        <option value="login">تسجيل دخول</option>
+                        <option value="logout">خروج</option>
+                        <option value="add_customer">إضافة عميل</option>
+                        <option value="edit_customer">تعديل عميل</option>
+                        <option value="delete_customer">حذف عميل</option>
+                        <option value="add_product">إضافة منتج</option>
+                        <option value="edit_product">تعديل منتج</option>
+                        <option value="delete_product">حذف منتج</option>
+                        <option value="add_followup">متابعة</option>
+                    </select>
+                    <button onclick="renderActivityLog()" class="btn-primary px-4 py-2 text-xs rounded uppercase">تحديث</button>
+                </div>
+            </div>
+            <div class="panel p-5 max-h-[70vh] overflow-y-auto" id="activityLogContainer"></div>
+        </section>
+
+        <!-- ============ MY ACTIVITY (EMPLOYEE) ============ -->
+        <section id="tab-myactivity" class="tab-content hidden space-y-5">
+            <div class="flex justify-between items-center border-b border-gray-200 pb-3">
+                <h2 class="text-xl font-black text-navy-dark">نشاطي الشخصي</h2>
+                <button onclick="renderMyActivity()" class="btn-primary px-4 py-2 text-xs rounded uppercase">تحديث</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="panel p-5 border-t-4 border-t-navy"><div class="text-xs font-black text-ink-muted uppercase mb-2">عمليات اليوم</div><div class="text-3xl font-black text-navy-dark" id="myTodayCount">0</div></div>
+                <div class="panel p-5 border-t-4 border-t-sky"><div class="text-xs font-black text-ink-muted uppercase mb-2">عملاء أضفتهم</div><div class="text-3xl font-black text-sky" id="myCustomersCount">0</div></div>
+                <div class="panel p-5 border-t-4 border-t-green-500"><div class="text-xs font-black text-ink-muted uppercase mb-2">متابعات سجلتها</div><div class="text-3xl font-black text-green-700" id="myFollowupsCount">0</div></div>
+            </div>
+            <div class="panel p-5 max-h-[60vh] overflow-y-auto" id="myActivityContainer"></div>
+        </section>
+
+        <!-- ============ SETTINGS ============ -->
+        <section id="tab-settings" class="tab-content hidden space-y-5">
+            <h2 class="text-xl font-black text-navy-dark border-b border-gray-200 pb-3">إعدادات النظام</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                <div class="panel p-5">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="font-black text-base text-navy-dark"><i class="fa-solid fa-car text-sky ml-2"></i>المركبات المتاحة</h3>
+                        <button onclick="addSettingItem('vehicles')" class="text-sky hover:text-navy font-black text-xs uppercase">+ إضافة</button>
+                    </div>
+                    <ul id="settingsVehiclesList" class="space-y-2 text-sm font-bold"></ul>
+                </div>
+                <div class="panel p-5">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="font-black text-base text-navy-dark"><i class="fa-solid fa-bullhorn text-sky ml-2"></i>قنوات التواصل</h3>
+                        <button onclick="addSettingItem('channels')" class="text-sky hover:text-navy font-black text-xs uppercase">+ إضافة</button>
+                    </div>
+                    <ul id="settingsChannelsList" class="space-y-2 text-sm font-bold"></ul>
+                </div>
+                <div class="panel p-5">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="font-black text-base text-navy-dark"><i class="fa-solid fa-building-columns text-sky ml-2"></i>جهات التقسيط</h3>
+                        <button onclick="addSettingItem('financeEntities')" class="text-sky hover:text-navy font-black text-xs uppercase">+ إضافة</button>
+                    </div>
+                    <ul id="settingsFinanceList" class="space-y-2 text-sm font-bold"></ul>
+                </div>
+                <div class="panel p-5 border-2 border-sky">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="font-black text-base text-navy-dark"><i class="fa-solid fa-comment-dots text-sky ml-2"></i>أسباب وهدف المتابعة</h3>
+                        <button onclick="addSettingItem('followupReasons')" class="text-sky hover:text-navy font-black text-xs uppercase">+ إضافة</button>
+                    </div>
+                    <ul id="settingsFollowupList" class="space-y-2 text-sm font-bold"></ul>
+                </div>
+                <div class="panel p-5">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="font-black text-base text-navy-dark"><i class="fa-solid fa-diagram-project text-sky ml-2"></i>مراحل التقسيط</h3>
+                        <button onclick="addSettingItem('installmentStages')" class="text-sky hover:text-navy font-black text-xs uppercase">+ إضافة</button>
+                    </div>
+                    <ul id="settingsStagesList" class="space-y-2 text-sm font-bold"></ul>
+                </div>
+                <div class="panel p-5">
+                    <div class="flex justify-between items-center mb-5">
+                        <h3 class="font-black text-base text-navy-dark"><i class="fa-solid fa-location-dot text-sky ml-2"></i>المحافظات</h3>
+                        <button onclick="addSettingItem('governorates')" class="text-sky hover:text-navy font-black text-xs uppercase">+ إضافة</button>
+                    </div>
+                    <ul id="settingsGovList" class="space-y-2 text-sm font-bold"></ul>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<!-- ==================== EMPLOYEE MODAL ==================== -->
+<div id="employeeModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg shadow-2xl rounded-lg modal-anim">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-l from-navy-dark to-navy rounded-t-lg">
+            <h3 class="font-black text-white"><span id="empModalTitle">إضافة موظف جديد</span></h3>
+            <button onclick="closeEmployeeModal()" class="text-white/80 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
         </div>
+        <form id="employeeForm" onsubmit="saveEmployeeData(event)" class="p-6 space-y-4">
+            <input type="hidden" id="empId">
+            <div><label class="block text-xs font-black text-ink-muted mb-1.5">الاسم الكامل *</label><input type="text" id="empName" required class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></div>
+            <div><label class="block text-xs font-black text-ink-muted mb-1.5">اسم المستخدم *</label><input type="text" id="empUsername" required class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded" placeholder="بدون مسافات"></div>
+            <div><label class="block text-xs font-black text-ink-muted mb-1.5">كلمة المرور *</label><input type="text" id="empPassword" required class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></div>
+            <div><label class="block text-xs font-black text-ink-muted mb-1.5">رقم الهاتف</label><input type="text" id="empPhone" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></div>
+            <div><label class="block text-xs font-black text-ink-muted mb-1.5">الصلاحية *</label>
+                <select id="empRole" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded">
+                    <option value="employee">موظف</option>
+                    <option value="manager">مدير</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary w-full py-3 text-sm rounded uppercase">حفظ</button>
+        </form>
+    </div>
+</div>
+
+<!-- ==================== CUSTOMER MODAL ==================== -->
+<div id="customerModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white w-full max-w-4xl shadow-2xl my-auto rounded-lg modal-anim">
+        <div class="p-5 border-b border-gray-200 flex items-center justify-between bg-gradient-to-l from-navy-dark to-navy rounded-t-lg">
+            <h3 class="font-black text-lg tracking-wide text-white"><span id="custModalTitle">تسجيل عميل جديد</span></h3>
+            <button type="button" onclick="closeCustomerModal()" class="text-white/80 hover:text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="customerForm" onsubmit="saveCustomerData(event)" class="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+            <input type="hidden" id="custId">
+            <div>
+                <h4 class="text-xs font-black text-sky uppercase tracking-widest border-b border-gray-200 pb-2 mb-4">📋 البيانات الأساسية</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">الاسم بالكامل *</label><input type="text" id="custName" required class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></div>
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">رقم الهاتف *</label><input type="text" id="custPhone" required class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></div>
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">هاتف بديل / واتساب</label><input type="text" id="custAltPhone" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></div>
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">الرقم القومي</label><input type="text" id="custNatId" maxlength="14" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></div>
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">المحافظة</label><select id="custGovSelect" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></select></div>
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">العنوان</label><input type="text" id="custAddress" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></div>
+                    <div><label class="block text-xs font-black text-sky mb-1.5">🔒 كلمة المرور للبوابة *</label><input type="text" id="custPassword" required class="w-full px-3 py-2.5 bg-blue-50 border border-sky text-sm rounded"></div>
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">قناة التواصل</label><select id="custChannelSelect" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></select></div>
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">الاهتمام</label><input type="text" id="custInterest" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></div>
+                </div>
+            </div>
+            <div class="bg-blue-50 p-4 rounded border border-blue-200">
+                <h4 class="text-xs font-black text-navy-dark uppercase tracking-widest border-b border-blue-200 pb-2 mb-4">🔧 الشاسيه والموتور</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">رقم الشاسيه</label><input type="text" id="custChassis" class="w-full px-3 py-2.5 bg-white border border-gray-300 text-sm rounded"></div>
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">رقم الموتور</label><input type="text" id="custMotor" class="w-full px-3 py-2.5 bg-white border border-gray-300 text-sm rounded"></div>
+                </div>
+            </div>
+            <div id="firstProductSection">
+                <h4 class="text-xs font-black text-navy-dark uppercase tracking-widest border-b border-gray-200 pb-2 mb-4">🚗 أول منتج / طلب</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">المركبة</label><select id="custVehicleSelect" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></select></div>
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">طريقة الدفع</label>
+                        <select id="custPayMethod" onchange="toggleInstallmentField()" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded">
+                            <option value="كاش">كاش</option><option value="تقسيط">تقسيط</option>
+                        </select>
+                    </div>
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">حالة المنتج</label>
+                        <select id="custStatus" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded">
+                            <option value="مفتوحة">مفتوحة</option><option value="جاري التقسيط">جاري التقسيط</option>
+                            <option value="منفذة">منفذة</option><option value="مفقودة">مفقودة / ملغاة</option>
+                        </select>
+                    </div>
+                    <div id="financeEntityWrap"><label class="block text-xs font-black text-ink-muted mb-1.5">جهة التقسيط</label><select id="custFinanceEntity" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></select></div>
+                    <div id="stageWrap"><label class="block text-xs font-black text-ink-muted mb-1.5">مرحلة التقسيط</label><select id="custStage" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></select></div>
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">إجمالي المبلغ</label><input type="number" id="custTotal" value="0" oninput="calcDebt()" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm font-black rounded"></div>
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">المقدم</label><input type="number" id="custDown" value="0" oninput="calcDebt()" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm font-black rounded"></div>
+                    <div><label class="block text-xs font-black text-amber-700 mb-1.5">المديونية</label><input type="text" id="custDebt" readonly class="w-full px-3 py-2.5 bg-amber-50 border border-amber-300 text-amber-800 font-black text-sm rounded"></div>
+                </div>
+            </div>
+            <div class="pt-5 border-t border-gray-200 flex justify-end gap-3">
+                <button type="button" onclick="closeCustomerModal()" class="btn-secondary px-6 py-3 text-sm rounded uppercase">إلغاء</button>
+                <button type="submit" class="btn-primary px-8 py-3 text-sm rounded uppercase">حفظ البيانات</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ==================== FOLLOWUP MODAL ==================== -->
+<div id="followupModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-white w-full max-w-lg shadow-2xl rounded-lg modal-anim">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-l from-navy-dark to-navy rounded-t-lg">
+            <h3 class="font-black text-white">إضافة متابعة جديدة</h3>
+            <button onclick="closeFollowupModal()" class="text-white/80 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="followupForm" onsubmit="saveFollowupData(event)" class="p-6 space-y-4">
+            <input type="hidden" id="fpCustId">
+            <div><label class="block text-xs font-black text-ink-muted mb-1.5">اسم العميل</label><input type="text" id="fpCustName" readonly class="w-full px-3 py-2.5 bg-page border border-gray-300 text-gray-600 text-sm font-bold rounded"></div>
+            <div class="grid grid-cols-2 gap-3">
+                <div><label class="block text-xs font-black text-ink-muted mb-1.5">تاريخ المتابعة *</label><input type="date" id="fpDate" required class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></div>
+                <div><label class="block text-xs font-black text-ink-muted mb-1.5">الوقت</label><input type="time" id="fpTime" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></div>
+            </div>
+            <div><label class="block text-xs font-black text-sky mb-1.5">🎯 سبب وهدف المتابعة *</label><select id="fpReason" required class="w-full px-3 py-2.5 bg-blue-50 border border-sky text-sm rounded"></select></div>
+            <div><label class="block text-xs font-black text-ink-muted mb-1.5">ملاحظات المتابعة *</label><textarea id="fpNotes" required rows="4" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></textarea></div>
+            <button type="submit" class="btn-primary w-full py-3 text-sm rounded uppercase">حفظ المتابعة</button>
+        </form>
+    </div>
+</div>
+
+<!-- ==================== PRODUCT MODAL ==================== -->
+<div id="productModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-white w-full max-w-2xl shadow-2xl rounded-lg modal-anim">
+        <div class="p-4 border-b border-gray-200 flex justify-between items-center bg-gradient-to-l from-navy-dark to-navy rounded-t-lg">
+            <h3 class="font-black text-white"><span id="prodModalTitle">إضافة منتج جديد</span></h3>
+            <button onclick="closeProductModal()" class="text-white/80 hover:text-white text-xl"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="productForm" onsubmit="saveProductData(event)" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+            <input type="hidden" id="prodCustId"><input type="hidden" id="prodId">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label class="block text-xs font-black text-ink-muted mb-1.5">المركبة *</label><select id="prodVehicle" required class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></select></div>
+                <div><label class="block text-xs font-black text-ink-muted mb-1.5">حالة المنتج *</label>
+                    <select id="prodStatus" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded">
+                        <option value="مفتوحة">مفتوحة</option><option value="جاري التقسيط">جاري التقسيط</option>
+                        <option value="منفذة">منفذة</option><option value="مفقودة">مفقودة / ملغاة</option>
+                    </select>
+                </div>
+                <div><label class="block text-xs font-black text-ink-muted mb-1.5">طريقة الدفع</label>
+                    <select id="prodPayMethod" onchange="toggleProdInstallment()" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded">
+                        <option value="كاش">كاش</option><option value="تقسيط">تقسيط</option>
+                    </select>
+                </div>
+                <div id="prodFinanceWrap"><label class="block text-xs font-black text-ink-muted mb-1.5">جهة التقسيط</label><select id="prodFinance" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></select></div>
+                <div id="prodStageWrap"><label class="block text-xs font-black text-ink-muted mb-1.5">مرحلة التقسيط</label><select id="prodStage" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></select></div>
+                <div><label class="block text-xs font-black text-ink-muted mb-1.5">إجمالي المبلغ</label><input type="number" id="prodTotal" value="0" oninput="calcProdDebt()" class="w-full px-3 py-2.5 bg-page border border-gray-300 font-black text-sm rounded"></div>
+                <div><label class="block text-xs font-black text-ink-muted mb-1.5">المقدم</label><input type="number" id="prodDown" value="0" oninput="calcProdDebt()" class="w-full px-3 py-2.5 bg-page border border-gray-300 font-black text-sm rounded"></div>
+                <div><label class="block text-xs font-black text-amber-700 mb-1.5">المديونية</label><input type="text" id="prodDebt" readonly class="w-full px-3 py-2.5 bg-amber-50 border border-amber-300 text-amber-800 font-black text-sm rounded"></div>
+            </div>
+            <div><label class="block text-xs font-black text-ink-muted mb-1.5">ملاحظات</label><textarea id="prodNotes" rows="2" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></textarea></div>
+            <div class="flex justify-end gap-3 pt-3 border-t border-gray-200">
+                <button type="button" onclick="closeProductModal()" class="btn-secondary px-6 py-2.5 text-sm rounded uppercase">إلغاء</button>
+                <button type="submit" class="btn-primary px-8 py-2.5 text-sm rounded uppercase">حفظ</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ==================== CUSTOMER DETAIL MODAL ==================== -->
+<div id="customerDetailModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white w-full max-w-5xl shadow-2xl my-auto rounded-lg modal-anim">
+        <div class="p-5 border-b border-gray-200 flex justify-between items-center bg-gradient-to-l from-navy-dark to-navy rounded-t-lg">
+            <h3 class="font-black text-lg text-white"><i class="fa-solid fa-user text-sky ml-2"></i>ملف العميل الكامل</h3>
+            <button onclick="closeCustomerDetail()" class="text-white/80 hover:text-white text-2xl"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="p-6 max-h-[75vh] overflow-y-auto" id="customerDetailContent"></div>
+    </div>
+</div>
+
+<!-- ==================== CUSTOMER PORTAL ==================== -->
+<div id="customerPortalScreen" class="fixed inset-0 z-40 bg-page hidden flex-col overflow-y-auto">
+    <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-navy-dark to-navy flex items-center justify-center shadow"><i class="fa-solid fa-car-side text-white text-xl"></i></div>
+            <div>
+                <h1 class="font-black text-xl tracking-wider text-navy-dark uppercase">AUTO<span class="text-sky">CRM</span></h1>
+                <p class="text-[10px] text-gray-500 tracking-widest font-black uppercase">بوابة العملاء</p>
+            </div>
+        </div>
+        <button onclick="handleLogout()" class="text-gray-500 hover:text-red-500 transition-colors flex items-center gap-2 text-sm font-black">
+            خروج <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
     </header>
-
-    <div id="mainLayout" class="flex flex-1 overflow-hidden relative">
-        <!-- Sidebar Navigation -->
-        <aside id="sidebar" class="w-64 bg-primary border-l border-maroon-dark flex flex-col justify-between shrink-0 transition-all duration-300 absolute lg:relative z-30 h-[calc(100vh-69px)] -right-64 lg:right-0">
-            <div class="p-4 space-y-2 overflow-y-auto">
-                <div class="text-[10px] font-black text-gray-500 px-2 uppercase tracking-widest mb-4">القائمة الرئيسية</div>
-                
-                <button onclick="switchTab('dashboard')" class="nav-btn active-nav w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400 hover:bg-panel hover:text-white transition-all border-r-4 border-transparent" data-tab="dashboard">
-                    <i class="fa-solid fa-chart-line w-5 text-center"></i>
-                    <span>لوحة التحكم</span>
-                </button>
-
-                <button onclick="switchTab('search')" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400 hover:bg-panel hover:text-white transition-all border-r-4 border-transparent" data-tab="search">
-                    <i class="fa-solid fa-users w-5 text-center"></i>
-                    <span>سجل العملاء</span>
-                </button>
-
-                <button onclick="openCustomerModal()" class="w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-white bg-darkred hover:bg-darkred-light transition-all my-4 shadow-lg shadow-darkred/20">
-                    <i class="fa-solid fa-plus w-5 text-center"></i>
-                    <span>إضافة عميل جديد</span>
-                </button>
-
-                <button onclick="switchTab('tasks')" class="nav-btn w-full flex items-center justify-between px-4 py-3 text-sm font-bold text-gray-400 hover:bg-panel hover:text-white transition-all border-r-4 border-transparent" data-tab="tasks">
-                    <div class="flex items-center gap-4">
-                        <i class="fa-solid fa-clipboard-list w-5 text-center"></i>
-                        <span>المهام والمتابعات</span>
-                    </div>
-                    <span id="navTasksCount" class="hidden bg-white text-black text-[10px] px-2 py-0.5 rounded-sm font-black">0</span>
-                </button>
-
-                <button onclick="switchTab('analytics')" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400 hover:bg-panel hover:text-white transition-all border-r-4 border-transparent" data-tab="analytics">
-                    <i class="fa-solid fa-chart-pie w-5 text-center"></i>
-                    <span>التقارير</span>
-                </button>
-
-                <div class="text-[10px] font-black text-gray-500 px-2 uppercase tracking-widest pt-6 mb-4">الإعدادات</div>
-
-                <button onclick="switchTab('settings')" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-400 hover:bg-panel hover:text-white transition-all border-r-4 border-transparent" data-tab="settings">
-                    <i class="fa-solid fa-sliders w-5 text-center"></i>
-                    <span>إعدادات النظام</span>
-                </button>
+    <main class="flex-1 p-4 md:p-8">
+        <div class="max-w-4xl mx-auto space-y-6">
+            <div class="panel p-8 border-t-4 border-t-navy-dark">
+                <h2 class="text-3xl font-black text-navy-dark mb-2">مرحباً بك، <span id="cpCustName" class="text-sky"></span></h2>
+                <p class="text-sm text-gray-500 font-bold">متابعة حالة سيارتك وحساباتك.</p>
             </div>
-            
-            <div class="p-4 border-t border-maroon-dark text-center">
-                <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">AutoCRM v3.0</span>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="panel p-5 border-r-4 border-r-sky"><div class="text-xs font-black text-ink-muted uppercase mb-2">المركبة</div><div id="cpVehicle" class="text-xl font-black text-navy-dark">-</div></div>
+                <div class="panel p-5 border-r-4 border-r-navy-dark"><div class="text-xs font-black text-ink-muted uppercase mb-2">حالة الطلب</div><div id="cpStatus" class="text-xl font-black text-navy-dark">-</div></div>
+                <div class="panel p-5 border-r-4 border-r-amber-500"><div class="text-xs font-black text-ink-muted uppercase mb-2">جهة التمويل</div><div id="cpFinance" class="text-xl font-black text-navy-dark">-</div></div>
             </div>
-        </aside>
-
-        <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-primary" id="mainContentArea" onclick="closeSidebarOnMobile()">
-            
-            <!-- Dashboard Tab -->
-            <section id="tab-dashboard" class="tab-content space-y-8 block">
-                <!-- Quick Add Action -->
-                <div class="glass-panel p-4 relative overflow-hidden flex justify-center items-center border-t-2 border-t-darkred">
-                    <div class="absolute -right-10 -top-10 opacity-5 pointer-events-none">
-                        <i class="fa-solid fa-car-side text-[120px] text-white"></i>
-                    </div>
-                    <div class="relative z-10 w-full md:w-1/2">
-                        <button onclick="openCustomerModal()" class="w-full bg-white hover:bg-gray-200 text-black font-black text-base px-6 py-4 transition-all uppercase tracking-wider flex items-center justify-center gap-3 shadow-lg shadow-white/10 border border-maroon">
-                            <i class="fa-solid fa-plus"></i> إضافة عميل جديد
-                        </button>
-                    </div>
-                </div>
-
-                <!-- KPI Cards (Redesigned) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <div class="glass-panel p-6 border-t-2 border-t-maroon">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">إجمالي العملاء</div>
-                            <i class="fa-solid fa-users text-white text-xl"></i>
-                        </div>
-                        <div class="text-4xl font-black text-white" id="kpiTotalCustomers">0</div>
-                    </div>
-                    
-                    <div class="glass-panel p-6 border-t-2 border-t-darkred">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">مبيعات منفذة</div>
-                            <i class="fa-solid fa-check-double text-darkred text-xl"></i>
-                        </div>
-                        <div class="text-4xl font-black text-white" id="kpiSalesDone">0</div>
-                    </div>
-                    
-                    <div class="glass-panel p-6 border-t-2 border-t-maroon-light">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="text-xs font-bold text-gray-400 uppercase tracking-widest">إجمالي المديونية (تقسيط)</div>
-                            <i class="fa-solid fa-money-bill-wave text-white text-xl"></i>
-                        </div>
-                        <div class="flex items-baseline gap-1">
-                            <div class="text-3xl font-black text-white" id="kpiTotalDebt">0</div>
-                            <span class="text-sm font-bold text-gray-500">ج.م</span>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-darkred p-6 border border-darkred-light shadow-lg shadow-darkred/20">
-                        <div class="flex justify-between items-start mb-4">
-                            <div class="text-xs font-bold text-white/80 uppercase tracking-widest">متابعات اليوم</div>
-                            <i class="fa-solid fa-clock text-white text-xl"></i>
-                        </div>
-                        <div class="text-4xl font-black text-white" id="kpiTodayTasks">0</div>
-                    </div>
-                </div>
-
-                <!-- Quick Actions & Tasks -->
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div class="glass-panel p-6 lg:col-span-2">
-                        <div class="flex justify-between items-center mb-6 pb-4 border-b border-maroon-dark">
-                            <h3 class="font-black text-lg uppercase tracking-wide">
-                                <i class="fa-solid fa-list-check text-darkred ml-2"></i>مهام ومتابعات اليوم
-                            </h3>
-                        </div>
-                        <div class="space-y-4" id="dashboardTasksList">
-                            <div class="text-center text-gray-500 text-sm py-8 font-bold border border-dashed border-maroon-dark">
-                                لا توجد مهام مستحقة اليوم.
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="glass-panel p-6 flex flex-col justify-between">
-                        <div>
-                            <h3 class="font-black text-lg uppercase tracking-wide mb-2">
-                                <i class="fa-solid fa-bolt text-white ml-2"></i>استعلام سريع
-                            </h3>
-                            <p class="text-xs text-gray-400 mb-6">ابحث مباشرة برقم هاتف العميل.</p>
-                            
-                            <div class="space-y-4">
-                                <input type="text" id="dashPhoneInput" placeholder="رقم الهاتف المباشر..." class="w-full px-4 py-3 bg-primary border border-maroon-dark text-white text-sm focus:outline-none focus:border-darkred transition-all">
-                                <button onclick="searchCustomerFromDash()" class="w-full bg-maroon hover:bg-darkred py-3 text-white font-black text-sm uppercase tracking-wider transition-all">
-                                    بحث الآن
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Search Tab -->
-            <section id="tab-search" class="tab-content hidden space-y-6">
-                <div class="glass-panel p-6 border-l-4 border-l-white">
-                    <h2 class="text-2xl font-black mb-6 uppercase tracking-wide">البحث الشامل في السجلات</h2>
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <div class="relative flex-1">
-                            <i class="fa-solid fa-phone absolute right-4 top-3.5 text-gray-500"></i>
-                            <input type="text" id="mainSearchPhone" placeholder="بحث برقم الهاتف الأساسي، البديل، أو الواتساب..." 
-                                   class="w-full pl-4 pr-12 py-3 bg-primary border border-maroon-dark text-white text-sm focus:outline-none focus:border-darkred transition-all">
-                        </div>
-                        <button onclick="executeCustomerSearch()" class="bg-white hover:bg-gray-200 text-black font-black px-8 py-3 text-sm transition-all uppercase tracking-wider">
-                            بحث
-                        </button>
-                    </div>
-                </div>
-                
-                <div id="searchResultsArea">
-                    <div class="text-center py-16 glass-panel border border-dashed border-maroon text-gray-500 font-bold">
-                        <i class="fa-solid fa-magnifying-glass text-4xl mb-4 text-maroon-dark"></i>
-                        <p>أدخل رقم الهاتف للبحث عن العميل وعرض ملفه الشامل.</p>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Tasks Tab -->
-            <section id="tab-tasks" class="tab-content hidden space-y-6">
-                <h2 class="text-2xl font-black uppercase tracking-wide border-b border-maroon-dark pb-4">إدارة المهام والمتابعات</h2>
-                <div class="glass-panel p-6">
-                    <div class="space-y-4" id="fullTasksContainer"></div>
-                </div>
-            </section>
-
-            <!-- Analytics Tab -->
-            <section id="tab-analytics" class="tab-content hidden space-y-6">
-                <div class="flex justify-between items-center border-b border-maroon-dark pb-4">
-                    <h2 class="text-2xl font-black uppercase tracking-wide">التقارير والإحصائيات</h2>
-                    <button onclick="renderCharts()" class="bg-maroon hover:bg-darkred text-white px-4 py-2 text-xs font-bold uppercase tracking-widest transition-all">تحديث البيانات</button>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="glass-panel p-6 h-80 flex flex-col">
-                        <h3 class="font-bold text-sm mb-4 text-gray-400 uppercase tracking-widest">حالة المبيعات</h3>
-                        <div class="flex-1 relative"><canvas id="chartStatus"></canvas></div>
-                    </div>
-                    <div class="glass-panel p-6 h-80 flex flex-col">
-                        <h3 class="font-bold text-sm mb-4 text-gray-400 uppercase tracking-widest">التوزيع الجغرافي</h3>
-                        <div class="flex-1 relative"><canvas id="chartGov"></canvas></div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Settings Tab -->
-            <section id="tab-settings" class="tab-content hidden space-y-6">
-                <h2 class="text-2xl font-black uppercase tracking-wide border-b border-maroon-dark pb-4">إعدادات النظام</h2>
-                
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div class="glass-panel p-6">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="font-bold text-lg">المركبات المتاحة</h3>
-                            <button onclick="addSettingItem('vehicles')" class="text-darkred hover:text-white font-bold text-xs uppercase transition-colors">+ إضافة مركبة</button>
-                        </div>
-                        <ul id="settingsVehiclesList" class="space-y-3 text-sm font-bold text-gray-300"></ul>
-                    </div>
-
-                    <div class="space-y-6">
-                        <div class="glass-panel p-6">
-                            <div class="flex justify-between items-center mb-6">
-                                <h3 class="font-bold text-lg">قنوات التواصل</h3>
-                                <button onclick="addSettingItem('channels')" class="text-darkred hover:text-white font-bold text-xs uppercase transition-colors">+ إضافة قناة</button>
-                            </div>
-                            <ul id="settingsChannelsList" class="space-y-3 text-sm font-bold text-gray-300"></ul>
-                        </div>
-                        
-                        <div class="glass-panel p-6">
-                            <div class="flex justify-between items-center mb-6">
-                                <h3 class="font-bold text-lg">جهات التقسيط</h3>
-                                <button onclick="addSettingItem('finance')" class="text-darkred hover:text-white font-bold text-xs uppercase transition-colors">+ إضافة جهة</button>
-                            </div>
-                            <ul id="settingsFinanceList" class="space-y-3 text-sm font-bold text-gray-300"></ul>
-                        </div>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
-
-    <!-- Customer Modal -->
-    <div id="customerModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm hidden items-center justify-center p-4 overflow-y-auto">
-        <div class="bg-panel border border-darkred w-full max-w-4xl shadow-2xl shadow-darkred/20 my-auto">
-            <div class="p-6 border-b border-maroon flex items-center justify-between bg-primary">
-                <h3 class="font-black text-xl tracking-wide uppercase text-white"><span id="custModalTitle">تسجيل عميل جديد</span></h3>
-                <button type="button" onclick="closeCustomerModal()" class="text-gray-500 hover:text-white text-2xl transition-colors"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="text-lg font-black text-navy-dark border-b border-gray-200 pb-2 mt-6">الملخص المالي</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="panel p-5 text-center"><i class="fa-solid fa-money-bill-wave text-sky text-3xl mb-3"></i><div class="text-xs font-black text-ink-muted uppercase mb-2">إجمالي المبلغ</div><div id="cpTotal" class="text-2xl font-black text-navy-dark">-</div></div>
+                <div class="panel p-5 text-center"><i class="fa-solid fa-hand-holding-dollar text-green-500 text-3xl mb-3"></i><div class="text-xs font-black text-ink-muted uppercase mb-2">المقدم المدفوع</div><div id="cpDown" class="text-2xl font-black text-green-700">-</div></div>
+                <div class="panel p-5 text-center bg-gradient-to-br from-navy-dark to-navy text-white"><i class="fa-solid fa-file-invoice-dollar text-white/70 text-3xl mb-3"></i><div class="text-xs font-black text-white/80 uppercase mb-2">المديونية</div><div id="cpDebt" class="text-3xl font-black">-</div></div>
             </div>
-            
-            <form id="customerForm" onsubmit="saveCustomerData(event)" class="p-8 space-y-8 max-h-[75vh] overflow-y-auto">
-                <input type="hidden" id="custId">
-                
-                <!-- Personal Data -->
-                <div>
-                    <h4 class="text-xs font-black text-darkred uppercase tracking-widest border-b border-maroon-dark pb-2 mb-4">البيانات الأساسية</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-2">الاسم بالكامل *</label>
-                            <input type="text" id="custName" required class="w-full px-4 py-2.5 bg-primary border border-maroon-dark text-white text-sm focus:outline-none focus:border-darkred transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-2">رقم الهاتف *</label>
-                            <input type="text" id="custPhone" required class="w-full px-4 py-2.5 bg-primary border border-maroon-dark text-white text-sm focus:outline-none focus:border-darkred transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-2">هاتف بديل / واتساب</label>
-                            <input type="text" id="custAltPhone" class="w-full px-4 py-2.5 bg-primary border border-maroon-dark text-white text-sm focus:outline-none focus:border-darkred transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-2">الرقم القومي</label>
-                            <input type="text" id="custNatId" maxlength="14" class="w-full px-4 py-2.5 bg-primary border border-maroon-dark text-white text-sm focus:outline-none focus:border-darkred transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-2">المحافظة</label>
-                            <select id="custGovSelect" class="w-full px-4 py-2.5 bg-primary border border-maroon-dark text-white text-sm focus:outline-none focus:border-darkred transition-colors"></select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-maroon-light mb-2">كلمة المرور (لبوابة العميل) *</label>
-                            <input type="text" id="custPassword" required class="w-full px-4 py-2.5 bg-black border border-maroon-light text-white text-sm focus:outline-none focus:border-darkred transition-colors" placeholder="تعيين كلمة سر للعميل">
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Request Data -->
-                <div>
-                    <h4 class="text-xs font-black text-white uppercase tracking-widest border-b border-maroon-dark pb-2 mb-4">تفاصيل الطلب</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-2">المركبة المطلوبة</label>
-                            <select id="custVehicleSelect" class="w-full px-4 py-2.5 bg-primary border border-maroon-dark text-white text-sm focus:outline-none focus:border-darkred transition-colors"></select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-2">قناة التواصل</label>
-                            <select id="custChannelSelect" class="w-full px-4 py-2.5 bg-primary border border-maroon-dark text-white text-sm focus:outline-none focus:border-darkred transition-colors"></select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-2">حالة البيع *</label>
-                            <select id="custStatus" required class="w-full px-4 py-2.5 bg-primary border border-maroon-dark text-white text-sm focus:outline-none focus:border-darkred transition-colors">
-                                <option value="مفتوحة">مفتوحة (تحت التواصل)</option>
-                                <option value="جاري التقسيط">جاري التقسيط</option>
-                                <option value="منفذة">منفذة (تم البيع)</option>
-                                <option value="مفقودة">مفقودة / ملغاة</option>
-                            </select>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Finance Data -->
-                <div>
-                    <h4 class="text-xs font-black text-gray-500 uppercase tracking-widest border-b border-maroon-dark pb-2 mb-4">الماليات والتمويل</h4>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-2">طريقة الدفع</label>
-                            <select id="custPayMethod" class="w-full px-4 py-2.5 bg-primary border border-maroon-dark text-white text-sm focus:outline-none focus:border-darkred transition-colors">
-                                <option value="كاش">نقدًا (كاش)</option>
-                                <option value="تقسيط">تقسيط</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-2">جهة التقسيط</label>
-                            <select id="custFinanceEntitySelect" class="w-full px-4 py-2.5 bg-primary border border-maroon-dark text-white text-sm focus:outline-none focus:border-darkred transition-colors"></select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-2">إجمالي مبلغ البيع</label>
-                            <input type="number" id="custTotal" value="0" oninput="calcDebt()" class="w-full px-4 py-2.5 bg-primary border border-maroon-dark text-white font-black text-sm focus:outline-none focus:border-darkred transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-400 mb-2">المقدم المدفوع</label>
-                            <input type="number" id="custDown" value="0" oninput="calcDebt()" class="w-full px-4 py-2.5 bg-primary border border-maroon-dark text-white font-black text-sm focus:outline-none focus:border-darkred transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-darkred mb-2">المديونية المتبقية</label>
-                            <input type="text" id="custDebt" readonly class="w-full px-4 py-2.5 bg-black border border-darkred text-white font-black text-sm cursor-not-allowed">
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="pt-6 border-t border-maroon-dark flex justify-end gap-4">
-                    <button type="button" onclick="closeCustomerModal()" class="px-6 py-3 bg-primary border border-maroon text-white text-sm font-bold uppercase tracking-wider hover:bg-maroon transition-colors">إلغاء</button>
-                    <button type="submit" class="px-8 py-3 bg-white text-black text-sm font-black uppercase tracking-wider hover:bg-gray-200 transition-colors shadow-lg shadow-white/10">حفظ البيانات</button>
-                </div>
-            </form>
+            <h3 class="text-lg font-black text-navy-dark border-b border-gray-200 pb-2 mt-6">🔔 آخر متابعة</h3>
+            <div id="cpLastFollowup" class="panel p-5"></div>
+            <div class="text-center text-xs text-gray-400 font-bold mt-8 border-t border-gray-200 pt-6">لأي استفسارات، يرجى التواصل مع إدارة المبيعات.</div>
         </div>
-    </div>
+    </main>
+</div>
 
-    <!-- Followup Modal -->
-    <div id="followupModal" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="bg-panel border border-maroon w-full max-w-md shadow-2xl">
-            <div class="p-5 border-b border-maroon-dark flex justify-between items-center bg-primary">
-                <h3 class="font-black uppercase tracking-wider text-white">إضافة متابعة</h3>
-                <button onclick="closeFollowupModal()" class="text-gray-500 hover:text-white transition-colors text-xl"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            <form id="taskForm" onsubmit="saveTaskData(event)" class="p-6 space-y-5">
-                <input type="hidden" id="taskCustId">
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-2">اسم العميل</label>
-                    <input type="text" id="taskCustNameDisplay" readonly class="w-full px-4 py-2.5 bg-primary border border-maroon-dark text-gray-500 text-sm font-bold">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-2">تاريخ المتابعة القادمة *</label>
-                    <input type="date" id="taskDate" required class="w-full px-4 py-2.5 bg-primary border border-maroon-dark text-white text-sm focus:outline-none focus:border-darkred">
-                </div>
-                <div>
-                    <label class="block text-xs font-bold text-gray-400 mb-2">تفاصيل المتابعة والملاحظات *</label>
-                    <textarea id="taskNotes" required rows="4" class="w-full px-4 py-2.5 bg-primary border border-maroon-dark text-white text-sm focus:outline-none focus:border-darkred"></textarea>
-                </div>
-                <button type="submit" class="w-full bg-darkred hover:bg-darkred-light text-white py-3 text-sm font-black uppercase tracking-wider transition-colors mt-2">حفظ المهمة</button>
-            </form>
-        </div>
-    </div>
+<script>
+// ==================== USERS DB ====================
+const savedUsers = localStorage.getItem('autoCrmUsersV5');
+let usersDb = savedUsers ? JSON.parse(savedUsers) : [
+    { id: 'u1', username: 'AhmedMH', password: '200900', name: 'أحمد محمود', role: 'manager', phone: '', createdAt: Date.now() }
+];
 
-    <!-- Customer Portal Screen (New Section) -->
-    <div id="customerPortalScreen" class="fixed inset-0 z-40 bg-primary hidden flex-col">
-        <header class="bg-panel border-b border-maroon-dark px-6 py-4 flex items-center justify-between shadow-lg shadow-black">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-sm bg-maroon flex items-center justify-center border border-darkred">
-                    <i class="fa-solid fa-car-side text-white text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="font-black text-xl tracking-wider text-white uppercase">AUTO<span class="text-darkred">CRM</span></h1>
-                    <p class="text-[10px] text-gray-400 tracking-widest uppercase">بوابة العملاء</p>
-                </div>
-            </div>
-            <button onclick="handleLogout()" class="text-gray-400 hover:text-darkred transition-colors flex items-center gap-2 text-sm font-bold">
-                خروج <i class="fa-solid fa-right-from-bracket"></i>
-            </button>
-        </header>
+function saveUsers() { localStorage.setItem('autoCrmUsersV5', JSON.stringify(usersDb)); }
 
-        <main class="flex-1 overflow-y-auto p-4 md:p-8">
-            <div class="max-w-4xl mx-auto space-y-8">
-                <!-- Welcome Banner -->
-                <div class="glass-panel p-8 border-t-2 border-t-darkred relative overflow-hidden">
-                    <div class="absolute -left-10 -top-10 opacity-5 pointer-events-none">
-                        <i class="fa-solid fa-user-shield text-[150px] text-white"></i>
+let currentUser = null;
+let currentLoginType = 'admin';
+let currentDetailCustomerId = null;
+
+// ==================== DATA ====================
+const savedData = localStorage.getItem('autoCrmDataV5');
+let appData = savedData ? JSON.parse(savedData) : {
+    customers: [],
+    tasks: [],
+    activityLog: [],
+    config: {
+        governorates: ['القاهرة', 'الجيزة', 'الإسكندرية', 'الشرقية', 'الدقهلية', 'الغربية', 'المنوفية', 'البحيرة', 'بني سويف', 'أسيوط', 'سوهاج'],
+        vehicles: ['هيونداي توسان', 'كيا سبورتاج', 'إم جي RX5', 'شيري تيجو', 'تويوتا كورولا', 'رينو لوجان'],
+        channels: ['فيسبوك', 'انستجرام', 'واتساب', 'مكالمة هاتفية', 'زيارة المعرض'],
+        financeEntities: ['بنك مصر', 'البنك الأهلي', 'كونتكت', 'أمان', 'درايف'],
+        followupReasons: ['استكمال أوراق التقسيط', 'الرد على استفسار', 'العميل رفض', 'العميل متردد', 'تذكير بموعد', 'تسليم أوراق', 'متابعة بعد البيع', 'متابعة سعر'],
+        installmentStages: ['قيد المراجعة', 'تم الموافقة', 'رد علينا', 'ملغي', 'استعلام سيئ', 'تم الصرف', 'تم التسليم']
+    }
+};
+
+function saveData() { localStorage.setItem('autoCrmDataV5', JSON.stringify(appData)); }
+
+function logActivity(type, details) {
+    if (!appData.activityLog) appData.activityLog = [];
+    appData.activityLog.unshift({
+        id: 'a' + Date.now() + Math.random().toString(36).slice(2, 6),
+        type: type,
+        userId: currentUser ? currentUser.id : 'system',
+        userName: currentUser ? currentUser.name : 'نظام',
+        timestamp: Date.now(),
+        details: details || ''
+    });
+    if (appData.activityLog.length > 1000) appData.activityLog = appData.activityLog.slice(0, 1000);
+    saveData();
+}
+
+let statusChartInstance, govChartInstance, vehicleChartInstance;
+
+// ==================== HELPERS ====================
+function isManager() { return currentUser && currentUser.role === 'manager'; }
+
+// ==================== INIT ====================
+window.onload = () => {
+    checkLoginState();
+    populateDropdowns();
+    renderSettingsLists();
+};
+
+// ==================== LOGIN ====================
+function setLoginType(type) {
+    currentLoginType = type;
+    const tabA = document.getElementById('tabAdminLogin'), tabC = document.getElementById('tabCustomerLogin');
+    const lbl = document.getElementById('loginUserLabel'), icon = document.getElementById('loginUserIcon');
+    const inp = document.getElementById('loginUser'), sub = document.getElementById('loginSubtitle'), btn = document.getElementById('loginBtnText');
+    if (type === 'admin') {
+        tabA.className = 'flex-1 py-4 text-sm font-black uppercase tracking-wider bg-navy-dark text-white';
+        tabC.className = 'flex-1 py-4 text-sm font-black uppercase tracking-wider bg-gray-100 text-gray-500 hover:text-navy';
+        lbl.innerText = 'اسم المستخدم'; icon.className = 'fa-solid fa-user absolute right-4 top-3.5 text-gray-400';
+        inp.placeholder = 'اسم المستخدم'; sub.innerText = 'تسجيل دخول الموظفين'; btn.innerText = 'دخول';
+    } else {
+        tabC.className = 'flex-1 py-4 text-sm font-black uppercase tracking-wider bg-navy-dark text-white';
+        tabA.className = 'flex-1 py-4 text-sm font-black uppercase tracking-wider bg-gray-100 text-gray-500 hover:text-navy';
+        lbl.innerText = 'رقم الهاتف'; icon.className = 'fa-solid fa-phone absolute right-4 top-3.5 text-gray-400';
+        inp.placeholder = '01xxxxxxxxx'; sub.innerText = 'بوابة متابعة العملاء'; btn.innerText = 'دخول لحسابي';
+    }
+}
+
+function checkLoginState() {
+    const s = sessionStorage.getItem('autoCrmUserV5');
+    if (s) {
+        const sessionUser = JSON.parse(s);
+        if (sessionUser.roleType === 'customer') {
+            currentUser = sessionUser;
+            showCustomerPortal();
+        } else {
+            const fresh = usersDb.find(x => x.id === sessionUser.id);
+            if (fresh) {
+                currentUser = { ...fresh, roleType: 'admin' };
+                showApp();
+            } else showLogin();
+        }
+    } else showLogin();
+}
+
+function handleLogin(e) {
+    e.preventDefault();
+    const u = document.getElementById('loginUser').value.trim();
+    const p = document.getElementById('loginPass').value;
+    if (currentLoginType === 'admin') {
+        const user = usersDb.find(x => x.username === u && x.password === p);
+        if (user) {
+            currentUser = { ...user, roleType: 'admin' };
+            sessionStorage.setItem('autoCrmUserV5', JSON.stringify(currentUser));
+            logActivity('login', `دخول ${user.role === 'manager' ? 'المدير' : 'الموظف'} ${user.name}`);
+            showApp(); showToast(`مرحباً بك، ${user.name}`);
+        } else showToast('بيانات الدخول غير صحيحة!', 'error');
+    } else {
+        const cust = appData.customers.find(c => (c.phone === u || c.altPhone === u) && c.password === p);
+        if (cust) {
+            currentUser = { ...cust, roleType: 'customer' };
+            sessionStorage.setItem('autoCrmUserV5', JSON.stringify(currentUser));
+            showCustomerPortal(); showToast(`مرحباً بك، ${cust.name}`);
+        } else showToast('رقم الهاتف أو كلمة المرور خطأ!', 'error');
+    }
+}
+
+function handleLogout() {
+    if (currentUser && currentUser.roleType === 'admin') logActivity('logout', `خروج ${currentUser.role === 'manager' ? 'المدير' : 'الموظف'} ${currentUser.name}`);
+    sessionStorage.removeItem('autoCrmUserV5');
+    currentUser = null;
+    document.getElementById('loginForm').reset();
+    switchTab('dashboard');
+    ['mainHeader','mainLayout','customerPortalScreen'].forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.add('hidden'); el.classList.remove('flex');
+    });
+    showLogin();
+}
+
+function showLogin() {
+    const el = document.getElementById('loginScreen');
+    el.classList.remove('hidden'); el.classList.add('flex');
+}
+function showApp() {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('flex');
+    document.getElementById('customerPortalScreen').classList.add('hidden');
+    document.getElementById('customerPortalScreen').classList.remove('flex');
+    document.getElementById('mainHeader').classList.remove('hidden');
+    document.getElementById('mainHeader').classList.add('flex');
+    document.getElementById('mainLayout').classList.remove('hidden');
+    document.getElementById('mainLayout').classList.add('flex');
+
+    document.getElementById('headerUserName').innerText = currentUser.name;
+    document.getElementById('headerUserRole').innerText = currentUser.role === 'manager' ? 'مدير' : 'موظف';
+    const parts = currentUser.name.split(' ');
+    document.getElementById('headerUserInitials').innerText = parts.length > 1 ? parts[0][0] + parts[1][0] : currentUser.name.substring(0, 2);
+    document.getElementById('dashWelcomeName').innerText = currentUser.name;
+
+    // Role-based sections
+    const adminSec = document.getElementById('adminSection');
+    const empSec = document.getElementById('employeeSection');
+    if (isManager()) {
+        adminSec.classList.remove('hidden');
+        empSec.classList.add('hidden');
+    } else {
+        adminSec.classList.add('hidden');
+        empSec.classList.remove('hidden');
+    }
+
+    // Ensure user has permission for current tab
+    const currentTab = document.querySelector('.tab-content:not(.hidden)')?.id?.replace('tab-','') || 'dashboard';
+    if (!isManager() && ['settings','activity','employees'].includes(currentTab)) switchTab('dashboard');
+
+    updateDashboard(); renderDashboardTasks(); renderFullTasks();
+}
+
+function showCustomerPortal() {
+    document.getElementById('loginScreen').classList.add('hidden');
+    document.getElementById('loginScreen').classList.remove('flex');
+    document.getElementById('mainHeader').classList.add('hidden');
+    document.getElementById('mainHeader').classList.remove('flex');
+    document.getElementById('mainLayout').classList.add('hidden');
+    document.getElementById('mainLayout').classList.remove('flex');
+    document.getElementById('customerPortalScreen').classList.remove('hidden');
+    document.getElementById('customerPortalScreen').classList.add('flex');
+
+    const c = appData.customers.find(x => x.id === currentUser.id) || currentUser;
+    const lastProd = (c.products && c.products.length) ? c.products[c.products.length - 1] : {};
+    const total = Number(lastProd.total || 0), down = Number(lastProd.down || 0);
+
+    document.getElementById('cpCustName').innerText = c.name;
+    document.getElementById('cpVehicle').innerText = lastProd.vehicle || 'غير محدد';
+    document.getElementById('cpStatus').innerText = lastProd.status || 'مفتوحة';
+    document.getElementById('cpFinance').innerText = lastProd.financeEntity || 'لا يوجد';
+    document.getElementById('cpTotal').innerText = total.toLocaleString() + ' ج.م';
+    document.getElementById('cpDown').innerText = down.toLocaleString() + ' ج.م';
+    document.getElementById('cpDebt').innerText = Math.max(0, total - down).toLocaleString() + ' ج.م';
+
+    const lastFp = (c.followups && c.followups.length) ? c.followups[0] : null;
+    const el = document.getElementById('cpLastFollowup');
+    if (lastFp) {
+        el.innerHTML = `
+            <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0"><i class="fa-solid fa-comment-dots text-navy"></i></div>
+                <div class="flex-1">
+                    <div class="flex flex-wrap gap-3 mb-2">
+                        <span class="badge badge-blue">${lastFp.reason}</span>
+                        <span class="text-xs text-gray-500 font-bold"><i class="fa-regular fa-calendar ml-1"></i>${lastFp.date} ${lastFp.time || ''}</span>
                     </div>
-                    <h2 class="text-3xl font-black text-white mb-2 relative z-10">مرحباً بك، <span id="cpCustName" class="text-darkred"></span></h2>
-                    <p class="text-sm text-gray-400 font-bold relative z-10">هذه هي لوحة التحكم الخاصة بك لمتابعة حالة سيارتك وحساباتك بكل شفافية.</p>
+                    <div class="text-sm text-ink font-bold">${lastFp.notes}</div>
                 </div>
+            </div>`;
+    } else el.innerHTML = '<div class="text-center text-gray-400 py-6 font-bold">لا توجد متابعات حتى الآن.</div>';
+}
 
-                <!-- Info Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="glass-panel p-6 border-r-2 border-maroon">
-                        <div class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">المركبة المطلوبة</div>
-                        <div id="cpVehicle" class="text-xl font-black text-white"></div>
+// ==================== NAV ====================
+function switchTab(tabId) {
+    // Permission check
+    if (!isManager() && ['settings','activity','employees'].includes(tabId)) {
+        showToast('هذه الصفحة متاحة للمدير فقط', 'error');
+        tabId = 'dashboard';
+    }
+
+    document.querySelectorAll('.tab-content').forEach(el => { el.classList.add('hidden'); el.classList.remove('block'); });
+    const target = document.getElementById('tab-' + tabId);
+    if (target) { target.classList.remove('hidden'); target.classList.add('block'); }
+
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active-nav'));
+    const active = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
+    if (active) active.classList.add('active-nav');
+    closeSidebarOnMobile();
+
+    if (tabId === 'dashboard') { updateDashboard(); renderDashboardTasks(); }
+    if (tabId === 'tasks') renderFullTasks();
+    if (tabId === 'analytics') initCharts();
+    if (tabId === 'settings') renderSettingsLists();
+    if (tabId === 'activity') { populateActivityFilters(); renderActivityLog(); }
+    if (tabId === 'employees') renderEmployeesList();
+    if (tabId === 'myactivity') renderMyActivity();
+}
+
+function toggleSidebar() {
+    const s = document.getElementById('sidebar');
+    s.classList.toggle('-right-64'); s.classList.toggle('right-0');
+}
+function closeSidebarOnMobile() {
+    if (window.innerWidth < 1024) {
+        const s = document.getElementById('sidebar');
+        s.classList.add('-right-64'); s.classList.remove('right-0');
+    }
+}
+
+// ==================== EMPLOYEES MGMT ====================
+function openEmployeeModal(id) {
+    const m = document.getElementById('employeeModal');
+    m.classList.remove('hidden'); m.classList.add('flex');
+    document.getElementById('employeeForm').reset();
+    document.getElementById('empId').value = '';
+    document.getElementById('empModalTitle').innerText = 'إضافة موظف جديد';
+
+    if (id) {
+        const u = usersDb.find(x => x.id === id);
+        if (!u) return;
+        document.getElementById('empModalTitle').innerText = 'تعديل بيانات الموظف';
+        document.getElementById('empId').value = u.id;
+        document.getElementById('empName').value = u.name;
+        document.getElementById('empUsername').value = u.username;
+        document.getElementById('empPassword').value = u.password;
+        document.getElementById('empPhone').value = u.phone || '';
+        document.getElementById('empRole').value = u.role;
+    }
+}
+function closeEmployeeModal() {
+    document.getElementById('employeeModal').classList.add('hidden');
+    document.getElementById('employeeModal').classList.remove('flex');
+}
+function saveEmployeeData(e) {
+    e.preventDefault();
+    if (!isManager()) return showToast('هذه العملية للمدير فقط', 'error');
+    const id = document.getElementById('empId').value;
+    const username = document.getElementById('empUsername').value.trim();
+    const password = document.getElementById('empPassword').value;
+    const name = document.getElementById('empName').value.trim();
+    const phone = document.getElementById('empPhone').value.trim();
+    const role = document.getElementById('empRole').value;
+
+    if (!id) {
+        if (usersDb.some(u => u.username === username)) return showToast('اسم المستخدم مستخدم بالفعل!', 'error');
+    } else {
+        if (usersDb.some(u => u.username === username && u.id !== id)) return showToast('اسم المستخدم مستخدم بالفعل!', 'error');
+    }
+
+    if (id) {
+        const idx = usersDb.findIndex(u => u.id === id);
+        usersDb[idx] = { ...usersDb[idx], name, username, password, phone, role };
+        logActivity('edit_employee', `تعديل الموظف: ${name}`);
+        showToast('تم تحديث بيانات الموظف');
+    } else {
+        usersDb.push({ id: 'u' + Date.now(), username, password, name, phone, role, createdAt: Date.now() });
+        logActivity('add_employee', `إضافة ${role === 'manager' ? 'مدير' : 'موظف'} جديد: ${name}`);
+        showToast('تم إضافة الموظف');
+    }
+    saveUsers(); closeEmployeeModal(); renderEmployeesList(); updateEmployeesKpi();
+}
+function deleteEmployee(id) {
+    if (!isManager()) return showToast('هذه العملية للمدير فقط', 'error');
+    if (id === currentUser.id) return showToast('لا يمكنك حذف حسابك!', 'error');
+    const u = usersDb.find(x => x.id === id);
+    if (!u) return;
+    if (!confirm(`⚠️ حذف الموظف "${u.name}"؟`)) return;
+    if (!confirm('🔴 تأكيد أخير: سيتم حذف الحساب نهائياً!')) return;
+    usersDb = usersDb.filter(x => x.id !== id);
+    logActivity('delete_employee', `حذف الموظف: ${u.name}`);
+    saveUsers(); renderEmployeesList(); updateEmployeesKpi();
+    showToast('تم حذف الموظف');
+}
+
+function renderEmployeesList() {
+    const c = document.getElementById('employeesListContainer');
+    if (!c) return;
+    if (usersDb.length === 0) {
+        c.innerHTML = '<div class="text-center text-gray-400 py-12 font-bold">لا يوجد موظفين</div>';
+        return;
+    }
+    c.innerHTML = usersDb.map(u => {
+        const today = new Date().toISOString().split('T')[0];
+        const actions = (appData.activityLog || []).filter(a => a.userId === u.id);
+        const todayActions = actions.filter(a => new Date(a.timestamp).toISOString().split('T')[0] === today).length;
+        const lastLogin = actions.find(a => a.type === 'login');
+        const statusBadge = todayActions > 0 ? '<span class="badge badge-green">نشط اليوم</span>' : '<span class="badge badge-gray">غير نشط</span>';
+        const roleTag = u.role === 'manager' ? '<span class="role-tag role-manager">مدير</span>' : '<span class="role-tag role-employee">موظف</span>';
+
+        return `
+            <div class="panel p-4 border-r-4 ${u.role === 'manager' ? 'border-r-purple-500' : 'border-r-sky'} flex flex-col md:flex-row justify-between gap-4 items-start md:items-center">
+                <div class="flex items-center gap-4 flex-1">
+                    <div class="w-14 h-14 rounded-full ${u.role === 'manager' ? 'bg-gradient-to-br from-purple-600 to-purple-800' : 'bg-gradient-to-br from-navy-dark to-sky'} flex items-center justify-center text-white font-black text-lg">
+                        ${u.name.split(' ').map(p=>p[0]).slice(0,2).join('')}
                     </div>
-                    
-                    <div class="glass-panel p-6 border-r-2 border-darkred">
-                        <div class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">حالة الطلب</div>
-                        <div id="cpStatus" class="text-xl font-black text-white"></div>
-                    </div>
-
-                    <div class="glass-panel p-6 border-r-2 border-maroon-light">
-                        <div class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-2">جهة التمويل</div>
-                        <div id="cpFinanceEntity" class="text-xl font-black text-white"></div>
-                    </div>
-                </div>
-
-                <!-- Financials Grid -->
-                <h3 class="text-lg font-black uppercase tracking-wider border-b border-maroon-dark pb-2 mt-8">الملخص المالي</h3>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="bg-panel border border-maroon-dark p-6 text-center">
-                        <i class="fa-solid fa-money-bill-wave text-gray-500 text-3xl mb-4"></i>
-                        <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">إجمالي المبلغ</div>
-                        <div id="cpTotal" class="text-2xl font-black text-white"></div>
-                    </div>
-                    
-                    <div class="bg-panel border border-maroon-dark p-6 text-center">
-                        <i class="fa-solid fa-hand-holding-dollar text-gray-500 text-3xl mb-4"></i>
-                        <div class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">المقدم المدفوع</div>
-                        <div id="cpDown" class="text-2xl font-black text-white"></div>
-                    </div>
-
-                    <div class="bg-darkred border border-darkred-light p-6 text-center shadow-lg shadow-darkred/20">
-                        <i class="fa-solid fa-file-invoice-dollar text-white/50 text-3xl mb-4"></i>
-                        <div class="text-xs font-bold text-white/80 uppercase tracking-widest mb-2">المديونية المتبقية</div>
-                        <div id="cpDebt" class="text-3xl font-black text-white"></div>
-                    </div>
-                </div>
-                
-                <div class="text-center text-xs text-gray-500 font-bold mt-8 border-t border-maroon-dark pt-6">
-                    لأي استفسارات، يرجى التواصل مع إدارة المبيعات.
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <script>
-        // قواعد بيانات المستخدمين الافتراضية للتسجيل (المدير فقط بناء على الطلب)
-        const usersDb = [
-            { id: 'u1', username: 'AhmedMH', password: '200900', name: 'أحمد محمود', role: 'System Admin' }
-        ];
-        
-        let currentUser = null;
-        let currentLoginType = 'admin'; // 'admin' or 'customer'
-
-        // Data is intentionally EMPTY (Zeros) as requested.
-        let appData = {
-            customers: [],
-            tasks: [],
-            config: {
-                governorates: ['القاهرة', 'الجيزة', 'الإسكندرية', 'الشرقية', 'الدقهلية', 'الغربية', 'المنوفية', 'البحيرة', 'بني سويف', 'أسيوط', 'سوهاج'],
-                vehicles: ['هيونداي توسان', 'كيا سبورتاج', 'إم جي RX5', 'شيري تيجو', 'تويوتا كورولا', 'رينو لوجان'],
-                channels: ['فيسبوك', 'انستجرام', 'واتساب', 'مكالمة هاتفية', 'زيارة المعرض'],
-                financeEntities: ['بنك مصر', 'البنك الأهلي', 'كونتكت', 'أمان', 'درايف']
-            }
-        };
-
-        window.onload = () => {
-            checkLoginState(); 
-            populateDropdowns();
-            updateDashboard();
-            renderSettingsLists();
-            initCharts(); 
-        };
-
-        // --- نظام تسجيل الدخول والخروج ---
-        function setLoginType(type) {
-            currentLoginType = type;
-            const tabAdmin = document.getElementById('tabAdminLogin');
-            const tabCustomer = document.getElementById('tabCustomerLogin');
-            const userLabel = document.getElementById('loginUserLabel');
-            const userIcon = document.getElementById('loginUserIcon');
-            const userInput = document.getElementById('loginUser');
-            const subtitle = document.getElementById('loginSubtitle');
-            const btnText = document.getElementById('loginBtnText');
-
-            if(type === 'admin') {
-                tabAdmin.className = 'flex-1 py-4 text-sm font-black uppercase tracking-wider bg-darkred text-white transition-colors border-b-0 border-maroon-dark';
-                tabCustomer.className = 'flex-1 py-4 text-sm font-black uppercase tracking-wider bg-panel text-gray-500 hover:text-white transition-colors border-b border-maroon-dark';
-                userLabel.innerText = 'اسم المستخدم';
-                userIcon.className = 'fa-solid fa-user absolute right-4 top-3.5 text-gray-500';
-                userInput.placeholder = 'اسم المستخدم';
-                subtitle.innerText = 'تسجيل دخول الموظفين';
-                btnText.innerText = 'دخول للإدارة';
-            } else {
-                tabCustomer.className = 'flex-1 py-4 text-sm font-black uppercase tracking-wider bg-darkred text-white transition-colors border-b-0 border-maroon-dark';
-                tabAdmin.className = 'flex-1 py-4 text-sm font-black uppercase tracking-wider bg-panel text-gray-500 hover:text-white transition-colors border-b border-maroon-dark';
-                userLabel.innerText = 'رقم الهاتف (اسم المستخدم)';
-                userIcon.className = 'fa-solid fa-phone absolute right-4 top-3.5 text-gray-500';
-                userInput.placeholder = '01xxxxxxxxx';
-                subtitle.innerText = 'بوابة متابعة العملاء';
-                btnText.innerText = 'دخول لحسابي';
-            }
-        }
-
-        function checkLoginState() {
-            const sessionUser = sessionStorage.getItem('autoCrmUser');
-            if(sessionUser) {
-                currentUser = JSON.parse(sessionUser);
-                if(currentUser.roleType === 'customer') {
-                    showCustomerPortal();
-                } else {
-                    showApp();
-                }
-            } else {
-                showLogin();
-            }
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const u = document.getElementById('loginUser').value.trim();
-            const p = document.getElementById('loginPass').value;
-            
-            if(currentLoginType === 'admin') {
-                const user = usersDb.find(user => user.username === u && user.password === p);
-                if(user) {
-                    currentUser = { ...user, roleType: 'admin' };
-                    sessionStorage.setItem('autoCrmUser', JSON.stringify(currentUser));
-                    showApp();
-                    showToast(`مرحباً بك، ${user.name}`);
-                } else {
-                    showToast('اسم المستخدم أو كلمة المرور غير صحيحة!', 'error');
-                }
-            } else {
-                // Customer Login with specific password created by Admin
-                const cust = appData.customers.find(c => c.phone === u || c.altPhone === u);
-                
-                if(cust && cust.password === p) {
-                    currentUser = { ...cust, roleType: 'customer' };
-                    sessionStorage.setItem('autoCrmUser', JSON.stringify(currentUser));
-                    showCustomerPortal();
-                    showToast(`مرحباً بك، ${cust.name}`);
-                } else {
-                    showToast('رقم الهاتف غير مسجل أو كلمة المرور خاطئة!', 'error');
-                }
-            }
-        }
-
-        function handleLogout() {
-            sessionStorage.removeItem('autoCrmUser');
-            currentUser = null;
-            document.getElementById('loginForm').reset();
-            switchTab('dashboard'); 
-            
-            // Hide everything, show login
-            document.getElementById('mainHeader').classList.add('hidden');
-            document.getElementById('mainHeader').classList.remove('flex');
-            document.getElementById('mainLayout').classList.add('hidden');
-            document.getElementById('mainLayout').classList.remove('flex');
-            document.getElementById('customerPortalScreen').classList.add('hidden');
-            document.getElementById('customerPortalScreen').classList.remove('flex');
-            
-            showLogin();
-        }
-
-        function showLogin() {
-            document.getElementById('loginScreen').classList.remove('hidden');
-            document.getElementById('loginScreen').classList.add('flex');
-        }
-
-        function showApp() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('loginScreen').classList.remove('flex');
-            document.getElementById('customerPortalScreen').classList.add('hidden');
-            document.getElementById('customerPortalScreen').classList.remove('flex');
-
-            document.getElementById('mainHeader').classList.remove('hidden');
-            document.getElementById('mainHeader').classList.add('flex');
-            document.getElementById('mainLayout').classList.remove('hidden');
-            document.getElementById('mainLayout').classList.add('flex');
-            
-            document.getElementById('headerUserName').innerText = currentUser.name;
-            document.getElementById('headerUserRole').innerText = currentUser.role;
-            
-            const nameParts = currentUser.name.split(' ');
-            let initials = nameParts.length > 1 ? nameParts[0][0] + nameParts[1][0] : currentUser.name.substring(0, 2);
-            document.getElementById('headerUserInitials').innerText = initials;
-        }
-
-        function showCustomerPortal() {
-            document.getElementById('loginScreen').classList.add('hidden');
-            document.getElementById('loginScreen').classList.remove('flex');
-            document.getElementById('mainHeader').classList.add('hidden');
-            document.getElementById('mainHeader').classList.remove('flex');
-            document.getElementById('mainLayout').classList.add('hidden');
-            document.getElementById('mainLayout').classList.remove('flex');
-            
-            document.getElementById('customerPortalScreen').classList.remove('hidden');
-            document.getElementById('customerPortalScreen').classList.add('flex');
-
-            // Render customer data dynamically
-            document.getElementById('cpCustName').innerText = currentUser.name;
-            document.getElementById('cpVehicle').innerText = currentUser.vehicle || 'غير محدد';
-            document.getElementById('cpStatus').innerText = currentUser.status || 'مفتوحة';
-            
-            const total = Number(currentUser.total || 0);
-            const down = Number(currentUser.down || 0);
-            const debt = Math.max(0, total - down);
-
-            document.getElementById('cpTotal').innerText = total.toLocaleString() + ' ج.م';
-            document.getElementById('cpDown').innerText = down.toLocaleString() + ' ج.م';
-            document.getElementById('cpDebt').innerText = debt.toLocaleString() + ' ج.م';
-            document.getElementById('cpFinanceEntity').innerText = currentUser.financeEntity || 'لا يوجد';
-        }
-        // --- نهاية نظام تسجيل الدخول ---
-
-        // UI Tabs & Navigation
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden', 'block'));
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('block'));
-            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
-            document.getElementById(`tab-${tabId}`).classList.add('block');
-
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                btn.classList.remove('active-nav');
-                btn.classList.add('text-gray-400', 'border-transparent');
-            });
-            const activeBtn = document.querySelector(`.nav-btn[data-tab="${tabId}"]`);
-            if(activeBtn) {
-                activeBtn.classList.remove('text-gray-400', 'border-transparent');
-                activeBtn.classList.add('active-nav');
-            }
-            closeSidebarOnMobile();
-
-            if(tabId === 'dashboard') updateDashboard();
-            if(tabId === 'tasks') renderFullTasks();
-            if(tabId === 'analytics') renderCharts();
-        }
-
-        document.getElementById('toggleSidebar').addEventListener('click', () => {
-            const sidebar = document.getElementById('sidebar');
-            sidebar.style.right = sidebar.style.right === '0px' ? '-256px' : '0px';
-        });
-        function closeSidebarOnMobile() {
-            if(window.innerWidth < 1024) document.getElementById('sidebar').style.right = '-256px';
-        }
-
-        // Custom Toast (Red/White theme)
-        function showToast(msg, type = 'success') {
-            const toast = document.createElement('div');
-            // Using white for success, red for error/info in this theme
-            const bgColor = type === 'success' ? 'bg-white text-black' : 'bg-darkred text-white';
-            const icon = type === 'success' ? '<i class="fa-solid fa-check text-black"></i>' : '<i class="fa-solid fa-circle-exclamation text-white"></i>';
-            
-            toast.className = `${bgColor} px-5 py-3 shadow-lg shadow-black/50 flex items-center gap-3 transform transition-all duration-300 translate-y-[-20px] opacity-0 font-bold border border-maroon-dark`;
-            toast.innerHTML = `${icon}<span class="text-sm tracking-wide">${msg}</span>`;
-            document.getElementById('toastContainer').appendChild(toast);
-            
-            requestAnimationFrame(() => toast.classList.remove('translate-y-[-20px]', 'opacity-0'));
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'scale-95');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        function generateId() { return Math.random().toString(36).substr(2, 9); }
-        function getCustomerById(id) { return appData.customers.find(c => c.id === id); }
-        
-        function populateSelect(selectId, dataArr, allowEmpty = true) {
-            const sel = document.getElementById(selectId);
-            if(!sel) return;
-            sel.innerHTML = allowEmpty ? '<option value="">-- اختر --</option>' : '';
-            dataArr.forEach(item => sel.innerHTML += `<option value="${item}">${item}</option>`);
-        }
-
-        function populateDropdowns() {
-            populateSelect('custGovSelect', appData.config.governorates);
-            populateSelect('custVehicleSelect', appData.config.vehicles);
-            populateSelect('custChannelSelect', appData.config.channels);
-            populateSelect('custFinanceEntitySelect', appData.config.financeEntities);
-        }
-
-        // Dashboard Updates
-        function updateDashboard() {
-            const total = appData.customers.length;
-            const sold = appData.customers.filter(c => c.status === 'منفذة').length;
-            
-            let totalDebt = 0;
-            appData.customers.forEach(c => {
-                const debt = (Number(c.total) || 0) - (Number(c.down) || 0);
-                if(debt > 0) totalDebt += debt;
-            });
-
-            const today = new Date().toISOString().split('T')[0];
-            const todayTasks = appData.tasks.filter(t => t.date === today && !t.completed);
-
-            document.getElementById('kpiTotalCustomers').innerText = total.toLocaleString();
-            document.getElementById('kpiSalesDone').innerText = sold.toLocaleString();
-            document.getElementById('kpiTotalDebt').innerText = totalDebt.toLocaleString();
-            document.getElementById('kpiTodayTasks').innerText = todayTasks.length.toLocaleString();
-            
-            const badge = document.getElementById('pendingTasksBadge');
-            const navBadge = document.getElementById('navTasksCount');
-            if(todayTasks.length > 0) {
-                badge.innerText = todayTasks.length;
-                navBadge.innerText = todayTasks.length;
-                navBadge.classList.remove('hidden');
-            } else {
-                badge.innerText = '0';
-                navBadge.classList.add('hidden');
-            }
-
-            renderDashboardTasks(todayTasks);
-        }
-
-        function renderDashboardTasks(tasks) {
-            const list = document.getElementById('dashboardTasksList');
-            if(tasks.length === 0) {
-                list.innerHTML = '<div class="text-center text-gray-500 text-sm py-8 font-bold border border-dashed border-maroon-dark">لا توجد مهام مستحقة اليوم.</div>';
-                return;
-            }
-            list.innerHTML = tasks.map(t => {
-                const cust = getCustomerById(t.custId);
-                return `
-                <div class="flex items-center justify-between p-4 bg-primary border border-maroon-dark hover:border-darkred transition-colors">
                     <div>
-                        <div class="font-black text-sm text-white">${cust ? cust.name : 'عميل غير معروف'}</div>
-                        <div class="text-xs text-gray-400 mt-1 truncate max-w-[200px]">${t.notes}</div>
+                        <div class="flex flex-wrap items-center gap-2 mb-1">
+                            <b class="text-navy-dark text-base">${u.name}</b>
+                            ${roleTag} ${statusBadge}
+                        </div>
+                        <div class="text-xs text-gray-500 font-bold flex flex-wrap gap-4">
+                            <span><i class="fa-solid fa-user text-sky ml-1"></i>${u.username}</span>
+                            ${u.phone ? `<span><i class="fa-solid fa-phone text-sky ml-1"></i>${u.phone}</span>` : ''}
+                            <span><i class="fa-solid fa-bolt text-amber-500 ml-1"></i>${todayActions} عملية اليوم</span>
+                            ${lastLogin ? `<span><i class="fa-solid fa-right-to-bracket text-green-500 ml-1"></i>آخر دخول: ${new Date(lastLogin.timestamp).toLocaleString('ar-EG',{dateStyle:'short',timeStyle:'short'})}</span>` : ''}
+                        </div>
+                    </div>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="viewEmployeeActivity('${u.id}')" class="btn-secondary text-xs px-4 py-2 rounded"><i class="fa-solid fa-clock-rotate-left ml-1"></i> نشاطه</button>
+                    <button onclick="openEmployeeModal('${u.id}')" class="btn-primary text-xs px-4 py-2 rounded"><i class="fa-solid fa-pen ml-1"></i> تعديل</button>
+                    ${u.id !== currentUser.id ? `<button onclick="deleteEmployee('${u.id}')" class="btn-danger text-xs px-4 py-2 rounded"><i class="fa-solid fa-trash ml-1"></i> حذف</button>` : ''}
+                </div>
+            </div>`;
+    }).join('');
+    updateEmployeesKpi();
+}
+
+function updateEmployeesKpi() {
+    const today = new Date().toISOString().split('T')[0];
+    const el1 = document.getElementById('kpiTotalEmployees');
+    const el2 = document.getElementById('kpiActiveToday');
+    const el3 = document.getElementById('kpiTodayActions');
+    if (!el1) return;
+    el1.innerText = usersDb.length;
+    const activeIds = new Set((appData.activityLog || []).filter(a => new Date(a.timestamp).toISOString().split('T')[0] === today).map(a => a.userId));
+    el2.innerText = activeIds.size;
+    el3.innerText = (appData.activityLog || []).filter(a => new Date(a.timestamp).toISOString().split('T')[0] === today).length;
+}
+
+function viewEmployeeActivity(id) {
+    switchTab('activity');
+    setTimeout(() => {
+        document.getElementById('activityFilterUser').value = id;
+        renderActivityLog();
+    }, 100);
+}
+
+// ==================== ACTIVITY LOG ====================
+function populateActivityFilters() {
+    const sel = document.getElementById('activityFilterUser');
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">كل الموظفين</option>' + usersDb.map(u => `<option value="${u.id}">${u.name} (${u.role === 'manager' ? 'مدير' : 'موظف'})</option>`).join('');
+    sel.value = cur;
+}
+
+function renderActivityLog() {
+    const c = document.getElementById('activityLogContainer');
+    if (!c) return;
+    if (!isManager()) { c.innerHTML = '<div class="text-center text-gray-400 py-12 font-bold">غير مصرح</div>'; return; }
+
+    const filterUser = document.getElementById('activityFilterUser').value;
+    const filterType = document.getElementById('activityFilterType').value;
+    let log = appData.activityLog || [];
+    if (filterUser) log = log.filter(a => a.userId === filterUser);
+    if (filterType) log = log.filter(a => a.type === filterType);
+
+    if (log.length === 0) {
+        c.innerHTML = '<div class="text-center text-gray-400 py-12 font-bold border border-dashed border-gray-300 rounded">لا يوجد نشاط مطابق.</div>';
+        return;
+    }
+    c.innerHTML = log.map(a => activityItem(a)).join('');
+}
+
+function renderMyActivity() {
+    if (!currentUser) return;
+    const log = (appData.activityLog || []).filter(a => a.userId === currentUser.id);
+    const today = new Date().toISOString().split('T')[0];
+    const todayCount = log.filter(a => new Date(a.timestamp).toISOString().split('T')[0] === today).length;
+    const addCustCount = log.filter(a => a.type === 'add_customer').length;
+    const followupCount = log.filter(a => a.type === 'add_followup').length;
+
+    document.getElementById('myTodayCount').innerText = todayCount;
+    document.getElementById('myCustomersCount').innerText = addCustCount;
+    document.getElementById('myFollowupsCount').innerText = followupCount;
+
+    const container = document.getElementById('myActivityContainer');
+    if (log.length === 0) {
+        container.innerHTML = '<div class="text-center text-gray-400 py-12 font-bold">لم تسجل أي نشاط بعد.</div>';
+        return;
+    }
+    container.innerHTML = log.slice(0, 200).map(a => activityItem(a, true)).join('');
+}
+
+function activityItem(a, hideName = false) {
+    const d = new Date(a.timestamp);
+    const iconMap = {
+        'login': { ic: 'fa-right-to-bracket', cl: 'text-green-600 bg-green-100' },
+        'logout': { ic: 'fa-right-from-bracket', cl: 'text-red-500 bg-red-100' },
+        'add_customer': { ic: 'fa-user-plus', cl: 'text-sky bg-blue-100' },
+        'edit_customer': { ic: 'fa-user-pen', cl: 'text-amber-600 bg-amber-100' },
+        'delete_customer': { ic: 'fa-user-minus', cl: 'text-red-600 bg-red-100' },
+        'add_product': { ic: 'fa-car', cl: 'text-navy bg-blue-100' },
+        'edit_product': { ic: 'fa-car-side', cl: 'text-amber-600 bg-amber-100' },
+        'delete_product': { ic: 'fa-car-burst', cl: 'text-red-500 bg-red-100' },
+        'add_followup': { ic: 'fa-comment-dots', cl: 'text-sky bg-blue-100' },
+        'add_employee': { ic: 'fa-user-tie', cl: 'text-purple-600 bg-purple-100' },
+        'edit_employee': { ic: 'fa-user-pen', cl: 'text-purple-600 bg-purple-100' },
+        'delete_employee': { ic: 'fa-user-xmark', cl: 'text-red-600 bg-red-100' },
+        'settings': { ic: 'fa-gear', cl: 'text-gray-500 bg-gray-100' }
+    };
+    const ic = iconMap[a.type] || { ic: 'fa-circle-info', cl: 'text-gray-500 bg-gray-100' };
+    const user = usersDb.find(u => u.id === a.userId);
+    const roleTag = user ? (user.role === 'manager' ? '<span class="role-tag role-manager">مدير</span>' : '<span class="role-tag role-employee">موظف</span>') : '';
+
+    return `
+        <div class="flex items-start gap-3 p-3 border-b border-gray-100 last:border-0 hover:bg-page">
+            <div class="w-10 h-10 rounded-full ${ic.cl} flex items-center justify-center shrink-0"><i class="fa-solid ${ic.ic}"></i></div>
+            <div class="flex-1">
+                <div class="flex flex-wrap justify-between gap-2 items-center">
+                    <div class="flex flex-wrap items-center gap-2">
+                        ${hideName ? '' : `<b class="text-sm text-navy-dark">${a.userName}</b> ${roleTag}`}
+                        ${hideName ? '' : '<span class="text-gray-300">•</span>'}
+                        <span class="text-xs text-gray-600 font-bold">${a.details}</span>
+                    </div>
+                    <span class="text-xs text-gray-400 font-bold">
+                        <i class="fa-regular fa-clock ml-1"></i>${d.toLocaleDateString('ar-EG', {dateStyle:'short'})} - ${d.toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit'})}
+                    </span>
+                </div>
+            </div>
+        </div>`;
+}
+
+// ==================== DROPDOWNS ====================
+function populateDropdowns() {
+    const fill = (id, arr, ph) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerHTML = `<option value="">-- ${ph} --</option>` + arr.map(x => `<option value="${x}">${x}</option>`).join('');
+    };
+    fill('custGovSelect', appData.config.governorates, 'اختر المحافظة');
+    fill('custVehicleSelect', appData.config.vehicles, 'اختر المركبة');
+    fill('custChannelSelect', appData.config.channels, 'اختر القناة');
+    fill('custFinanceEntity', appData.config.financeEntities, 'اختر الجهة');
+    fill('custStage', appData.config.installmentStages, 'اختر المرحلة');
+    fill('fpReason', appData.config.followupReasons, 'اختر السبب');
+    fill('prodVehicle', appData.config.vehicles, 'اختر المركبة');
+    fill('prodFinance', appData.config.financeEntities, 'اختر الجهة');
+    fill('prodStage', appData.config.installmentStages, 'اختر المرحلة');
+}
+
+// ==================== CUSTOMER MODAL ====================
+function openCustomerModal(id) {
+    const m = document.getElementById('customerModal');
+    m.classList.remove('hidden'); m.classList.add('flex');
+    document.getElementById('customerForm').reset();
+    document.getElementById('custId').value = '';
+    document.getElementById('custModalTitle').innerText = 'تسجيل عميل جديد';
+    document.getElementById('custDebt').value = '0';
+    document.getElementById('firstProductSection').style.display = 'block';
+    toggleInstallmentField();
+
+    if (id) {
+        const c = appData.customers.find(x => x.id === id);
+        if (!c) return;
+        document.getElementById('custModalTitle').innerText = 'تعديل بيانات العميل';
+        document.getElementById('firstProductSection').style.display = 'none';
+        document.getElementById('custId').value = c.id;
+        document.getElementById('custName').value = c.name || '';
+        document.getElementById('custPhone').value = c.phone || '';
+        document.getElementById('custAltPhone').value = c.altPhone || '';
+        document.getElementById('custNatId').value = c.natId || '';
+        document.getElementById('custPassword').value = c.password || '';
+        document.getElementById('custGovSelect').value = c.gov || '';
+        document.getElementById('custAddress').value = c.address || '';
+        document.getElementById('custChannelSelect').value = c.channel || '';
+        document.getElementById('custInterest').value = c.interest || '';
+        document.getElementById('custChassis').value = c.chassis || '';
+        document.getElementById('custMotor').value = c.motor || '';
+    }
+}
+function closeCustomerModal() {
+    document.getElementById('customerModal').classList.add('hidden');
+    document.getElementById('customerModal').classList.remove('flex');
+}
+function toggleInstallmentField() {
+    const pm = document.getElementById('custPayMethod').value;
+    document.getElementById('financeEntityWrap').style.opacity = pm === 'تقسيط' ? '1' : '0.4';
+    document.getElementById('stageWrap').style.opacity = pm === 'تقسيط' ? '1' : '0.4';
+}
+function calcDebt() {
+    const t = Number(document.getElementById('custTotal').value) || 0;
+    const d = Number(document.getElementById('custDown').value) || 0;
+    document.getElementById('custDebt').value = Math.max(0, t - d).toLocaleString() + ' ج.م';
+}
+
+function saveCustomerData(e) {
+    e.preventDefault();
+    const id = document.getElementById('custId').value;
+    const baseData = {
+        id: id || 'c' + Date.now(),
+        name: document.getElementById('custName').value.trim(),
+        phone: document.getElementById('custPhone').value.trim(),
+        altPhone: document.getElementById('custAltPhone').value.trim(),
+        natId: document.getElementById('custNatId').value.trim(),
+        password: document.getElementById('custPassword').value.trim(),
+        gov: document.getElementById('custGovSelect').value,
+        address: document.getElementById('custAddress').value.trim(),
+        channel: document.getElementById('custChannelSelect').value,
+        interest: document.getElementById('custInterest').value.trim(),
+        chassis: document.getElementById('custChassis').value.trim(),
+        motor: document.getElementById('custMotor').value.trim()
+    };
+
+    if (id) {
+        const idx = appData.customers.findIndex(c => c.id === id);
+        appData.customers[idx] = { ...appData.customers[idx], ...baseData };
+        logActivity('edit_customer', `تعديل بيانات العميل: ${baseData.name}`);
+        showToast('تم تحديث بيانات العميل');
+    } else {
+        const product = {
+            id: 'p' + Date.now(),
+            vehicle: document.getElementById('custVehicleSelect').value,
+            payMethod: document.getElementById('custPayMethod').value,
+            financeEntity: document.getElementById('custFinanceEntity').value,
+            stage: document.getElementById('custStage').value,
+            status: document.getElementById('custStatus').value,
+            total: Number(document.getElementById('custTotal').value) || 0,
+            down: Number(document.getElementById('custDown').value) || 0,
+            debt: Math.max(0, (Number(document.getElementById('custTotal').value) || 0) - (Number(document.getElementById('custDown').value) || 0)),
+            notes: '',
+            createdAt: Date.now()
+        };
+        appData.customers.push({ ...baseData, products: [product], followups: [], createdAt: Date.now(), createdBy: currentUser.id, createdByName: currentUser.name });
+        logActivity('add_customer', `إضافة عميل جديد: ${baseData.name}`);
+        showToast('تم تسجيل العميل بنجاح');
+    }
+    saveData(); closeCustomerModal(); updateDashboard(); renderFullTasks(); renderDashboardTasks();
+    if (document.getElementById('tab-search').classList.contains('block')) executeCustomerSearch();
+}
+
+// ==================== PRODUCT ====================
+function openProductModal(custId, prodId) {
+    const m = document.getElementById('productModal');
+    m.classList.remove('hidden'); m.classList.add('flex');
+    document.getElementById('productForm').reset();
+    document.getElementById('prodCustId').value = custId;
+    document.getElementById('prodId').value = '';
+    document.getElementById('prodModalTitle').innerText = 'إضافة منتج جديد';
+    document.getElementById('prodDebt').value = '0';
+    toggleProdInstallment();
+
+    if (prodId) {
+        const c = appData.customers.find(x => x.id === custId);
+        const p = c.products.find(x => x.id === prodId);
+        if (p) {
+            document.getElementById('prodModalTitle').innerText = 'تعديل المنتج';
+            document.getElementById('prodId').value = p.id;
+            document.getElementById('prodVehicle').value = p.vehicle || '';
+            document.getElementById('prodStatus').value = p.status || 'مفتوحة';
+            document.getElementById('prodPayMethod').value = p.payMethod || 'كاش';
+            document.getElementById('prodFinance').value = p.financeEntity || '';
+            document.getElementById('prodStage').value = p.stage || '';
+            document.getElementById('prodTotal').value = p.total || 0;
+            document.getElementById('prodDown').value = p.down || 0;
+            document.getElementById('prodNotes').value = p.notes || '';
+            toggleProdInstallment(); calcProdDebt();
+        }
+    }
+}
+function closeProductModal() {
+    document.getElementById('productModal').classList.add('hidden');
+    document.getElementById('productModal').classList.remove('flex');
+}
+function toggleProdInstallment() {
+    const pm = document.getElementById('prodPayMethod').value;
+    document.getElementById('prodFinanceWrap').style.opacity = pm === 'تقسيط' ? '1' : '0.4';
+    document.getElementById('prodStageWrap').style.opacity = pm === 'تقسيط' ? '1' : '0.4';
+}
+function calcProdDebt() {
+    const t = Number(document.getElementById('prodTotal').value) || 0;
+    const d = Number(document.getElementById('prodDown').value) || 0;
+    document.getElementById('prodDebt').value = Math.max(0, t - d).toLocaleString() + ' ج.م';
+}
+function saveProductData(e) {
+    e.preventDefault();
+    const custId = document.getElementById('prodCustId').value;
+    const prodId = document.getElementById('prodId').value;
+    const c = appData.customers.find(x => x.id === custId);
+    if (!c) return;
+
+    const t = Number(document.getElementById('prodTotal').value) || 0;
+    const d = Number(document.getElementById('prodDown').value) || 0;
+    const data = {
+        id: prodId || 'p' + Date.now(),
+        vehicle: document.getElementById('prodVehicle').value,
+        status: document.getElementById('prodStatus').value,
+        payMethod: document.getElementById('prodPayMethod').value,
+        financeEntity: document.getElementById('prodFinance').value,
+        stage: document.getElementById('prodStage').value,
+        total: t, down: d, debt: Math.max(0, t - d),
+        notes: document.getElementById('prodNotes').value.trim(),
+        createdAt: prodId ? (c.products.find(x => x.id === prodId)?.createdAt || Date.now()) : Date.now(),
+        createdBy: currentUser.id, createdByName: currentUser.name
+    };
+
+    if (!c.products) c.products = [];
+    if (prodId) {
+        const idx = c.products.findIndex(x => x.id === prodId);
+        c.products[idx] = data;
+        logActivity('edit_product', `تعديل منتج لـ ${c.name}: ${data.vehicle}`);
+        showToast('تم تحديث المنتج');
+    } else {
+        c.products.push(data);
+        logActivity('add_product', `إضافة منتج لـ ${c.name}: ${data.vehicle}`);
+        showToast('تمت إضافة المنتج');
+    }
+    saveData(); closeProductModal(); updateDashboard();
+    if (currentDetailCustomerId === custId) openCustomerDetail(custId);
+    if (document.getElementById('tab-search').classList.contains('block')) executeCustomerSearch();
+}
+function deleteProduct(custId, prodId) {
+    if (!isManager()) return showToast('حذف المنتجات متاح للمدير فقط', 'error');
+    if (!confirm('حذف هذا المنتج؟')) return;
+    const c = appData.customers.find(x => x.id === custId);
+    if (!c) return;
+    c.products = c.products.filter(x => x.id !== prodId);
+    logActivity('delete_product', `حذف منتج من ${c.name}`);
+    saveData(); updateDashboard();
+    if (currentDetailCustomerId === custId) openCustomerDetail(custId);
+    executeCustomerSearch();
+    showToast('تم حذف المنتج');
+}
+
+// ==================== FOLLOWUP ====================
+function openFollowupModal(custId) {
+    const c = appData.customers.find(x => x.id === custId);
+    if (!c) return;
+    const m = document.getElementById('followupModal');
+    m.classList.remove('hidden'); m.classList.add('flex');
+    document.getElementById('followupForm').reset();
+    document.getElementById('fpCustId').value = c.id;
+    document.getElementById('fpCustName').value = c.name;
+    const d = new Date();
+    document.getElementById('fpDate').value = d.toISOString().split('T')[0];
+    document.getElementById('fpTime').value = d.toTimeString().slice(0, 5);
+}
+function closeFollowupModal() {
+    document.getElementById('followupModal').classList.add('hidden');
+    document.getElementById('followupModal').classList.remove('flex');
+}
+function saveFollowupData(e) {
+    e.preventDefault();
+    const custId = document.getElementById('fpCustId').value;
+    const c = appData.customers.find(x => x.id === custId);
+    if (!c) return;
+    const data = {
+        id: 'f' + Date.now(),
+        date: document.getElementById('fpDate').value,
+        time: document.getElementById('fpTime').value,
+        reason: document.getElementById('fpReason').value,
+        notes: document.getElementById('fpNotes').value.trim(),
+        createdAt: Date.now(),
+        byName: currentUser.name, byId: currentUser.id
+    };
+    if (!c.followups) c.followups = [];
+    c.followups.unshift(data);
+
+    appData.tasks.push({
+        id: 't' + Date.now(),
+        customerId: c.id, date: data.date,
+        notes: `[${data.reason}] ${data.notes}`,
+        completed: false, createdAt: Date.now(),
+        byName: currentUser.name
+    });
+
+    logActivity('add_followup', `متابعة للعميل ${c.name} - ${data.reason}`);
+    saveData(); closeFollowupModal(); updateDashboard(); renderFullTasks(); renderDashboardTasks();
+    if (currentDetailCustomerId === custId) openCustomerDetail(custId);
+    if (document.getElementById('tab-search').classList.contains('block')) executeCustomerSearch();
+    showToast('تم حفظ المتابعة');
+}
+
+// ==================== CUSTOMER DETAIL ====================
+function openCustomerDetail(custId) {
+    const c = appData.customers.find(x => x.id === custId);
+    if (!c) return;
+    currentDetailCustomerId = custId;
+    const m = document.getElementById('customerDetailModal');
+    m.classList.remove('hidden'); m.classList.add('flex');
+
+    const statusBadge = (s) => {
+        const map = { 'منفذة': 'badge-green', 'جاري التقسيط': 'badge-yellow', 'مفتوحة': 'badge-blue', 'مفقودة': 'badge-red' };
+        return `<span class="badge ${map[s] || 'badge-gray'}">${s}</span>`;
+    };
+
+    let html = `
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+            <div class="md:col-span-2">
+                <h3 class="text-2xl font-black text-navy-dark mb-3">${c.name}</h3>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                    <div><span class="text-xs text-ink-muted font-bold block">الهاتف</span><b>${c.phone || '-'}</b></div>
+                    <div><span class="text-xs text-ink-muted font-bold block">واتساب/بديل</span><b>${c.altPhone || '-'}</b></div>
+                    <div><span class="text-xs text-ink-muted font-bold block">الرقم القومي</span><b>${c.natId || '-'}</b></div>
+                    <div><span class="text-xs text-ink-muted font-bold block">المحافظة</span><b>${c.gov || '-'}</b></div>
+                    <div class="md:col-span-2"><span class="text-xs text-ink-muted font-bold block">العنوان</span><b>${c.address || '-'}</b></div>
+                    <div><span class="text-xs text-ink-muted font-bold block">القناة</span><b>${c.channel || '-'}</b></div>
+                    <div><span class="text-xs text-ink-muted font-bold block">الاهتمام</span><b>${c.interest || '-'}</b></div>
+                    <div><span class="text-xs text-ink-muted font-bold block">الشاسيه</span><b>${c.chassis || '-'}</b></div>
+                    <div><span class="text-xs text-ink-muted font-bold block">الموتور</span><b>${c.motor || '-'}</b></div>
+                    ${c.createdByName ? `<div class="md:col-span-2"><span class="text-xs text-ink-muted font-bold block">أضيف بواسطة</span><b class="text-navy">${c.createdByName}</b></div>` : ''}
+                </div>
+            </div>
+            <div class="bg-blue-50 p-4 rounded border border-blue-200">
+                <div class="text-xs font-black text-navy-dark mb-2">إجراءات سريعة</div>
+                <div class="space-y-2">
+                    <button onclick="closeCustomerDetail();openCustomerModal('${c.id}')" class="btn-secondary w-full py-2 text-xs rounded"><i class="fa-solid fa-pen ml-1"></i> تعديل</button>
+                    <button onclick="openProductModal('${c.id}')" class="btn-primary w-full py-2 text-xs rounded"><i class="fa-solid fa-plus ml-1"></i> منتج جديد</button>
+                    <button onclick="openFollowupModal('${c.id}')" class="btn-primary w-full py-2 text-xs rounded"><i class="fa-solid fa-comment ml-1"></i> متابعة</button>
+                    <div class="grid grid-cols-2 gap-2">
+                        ${c.phone ? `<a href="tel:${c.phone}" class="btn-secondary py-2 text-xs rounded text-center"><i class="fa-solid fa-phone"></i> اتصال</a>` : ''}
+                        ${c.altPhone ? `<a href="https://wa.me/${c.altPhone.replace(/^0/, '20')}" target="_blank" class="btn-secondary py-2 text-xs rounded text-center text-green-700"><i class="fa-brands fa-whatsapp"></i> واتساب</a>` : ''}
+                    </div>
+                    ${isManager() ? `<button onclick="deleteCustomer('${c.id}')" class="btn-danger w-full py-2 text-xs rounded"><i class="fa-solid fa-trash ml-1"></i> حذف العميل</button>` : '<div class="text-[10px] text-gray-500 text-center font-bold pt-1">🔒 الحذف للمدير فقط</div>'}
+                </div>
+            </div>
+        </div>
+
+        <h4 class="text-sm font-black text-navy-dark mb-3 border-b border-gray-200 pb-2">🚗 المنتجات (${(c.products || []).length})</h4>
+        <div class="space-y-3 mb-6">
+    `;
+
+    if (!c.products || c.products.length === 0) {
+        html += `<div class="text-center text-gray-400 py-6 font-bold bg-page rounded border border-dashed border-gray-300">لا توجد منتجات مسجلة.</div>`;
+    } else {
+        html += c.products.map((p, i) => `
+            <div class="bg-white border border-gray-200 rounded p-4">
+                <div class="flex justify-between items-start mb-3">
+                    <div class="flex items-center gap-2">
+                        <span class="badge badge-blue">منتج #${i + 1}</span>
+                        <b class="text-navy-dark">${p.vehicle}</b>
+                        ${statusBadge(p.status)}
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="markTaskDone('${t.id}')" class="w-8 h-8 bg-white text-black hover:bg-gray-200 flex items-center justify-center transition-colors"><i class="fa-solid fa-check"></i></button>
-                        <button onclick="openCustomerDetails('${t.custId}')" class="w-8 h-8 bg-maroon text-white hover:bg-darkred flex items-center justify-center transition-colors"><i class="fa-solid fa-eye"></i></button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
-
-        function openCustomerModal(id = null) {
-            document.getElementById('customerForm').reset();
-            document.getElementById('custId').value = '';
-            document.getElementById('custDebt').value = '';
-            document.getElementById('custPassword').value = ''; // Reset Password Field
-            
-            if (id) {
-                const c = getCustomerById(id);
-                if(c) {
-                    document.getElementById('custModalTitle').innerText = 'تعديل بيانات العميل';
-                    document.getElementById('custId').value = c.id;
-                    document.getElementById('custName').value = c.name;
-                    document.getElementById('custPhone').value = c.phone;
-                    document.getElementById('custAltPhone').value = c.altPhone || '';
-                    document.getElementById('custNatId').value = c.natId || '';
-                    document.getElementById('custGovSelect').value = c.gov || '';
-                    document.getElementById('custPassword').value = c.password || ''; // Load password
-                    document.getElementById('custVehicleSelect').value = c.vehicle || '';
-                    document.getElementById('custChannelSelect').value = c.channel || '';
-                    document.getElementById('custStatus').value = c.status || 'مفتوحة';
-                    document.getElementById('custPayMethod').value = c.payMethod || 'كاش';
-                    document.getElementById('custTotal').value = c.total || 0;
-                    document.getElementById('custDown').value = c.down || 0;
-                    document.getElementById('custFinanceEntitySelect').value = c.financeEntity || '';
-                    calcDebt();
-                }
-            } else {
-                document.getElementById('custModalTitle').innerText = 'تسجيل عميل جديد';
-            }
-            document.getElementById('customerModal').classList.remove('hidden');
-            document.getElementById('customerModal').classList.add('flex');
-        }
-
-        function closeCustomerModal() {
-            document.getElementById('customerModal').classList.add('hidden');
-            document.getElementById('customerModal').classList.remove('flex');
-        }
-
-        function calcDebt() {
-            const t = Number(document.getElementById('custTotal').value) || 0;
-            const d = Number(document.getElementById('custDown').value) || 0;
-            document.getElementById('custDebt').value = Math.max(0, t - d).toLocaleString();
-        }
-
-        function saveCustomerData(e) {
-            e.preventDefault();
-            const id = document.getElementById('custId').value;
-            const data = {
-                name: document.getElementById('custName').value,
-                phone: document.getElementById('custPhone').value,
-                altPhone: document.getElementById('custAltPhone').value,
-                natId: document.getElementById('custNatId').value,
-                gov: document.getElementById('custGovSelect').value,
-                password: document.getElementById('custPassword').value, // Save custom password
-                vehicle: document.getElementById('custVehicleSelect').value,
-                channel: document.getElementById('custChannelSelect').value,
-                status: document.getElementById('custStatus').value,
-                payMethod: document.getElementById('custPayMethod').value,
-                total: document.getElementById('custTotal').value,
-                down: document.getElementById('custDown').value,
-                financeEntity: document.getElementById('custFinanceEntitySelect').value
-            };
-
-            if (id) {
-                const idx = appData.customers.findIndex(c => c.id === id);
-                if(idx > -1) appData.customers[idx] = { ...appData.customers[idx], ...data };
-                showToast('تم تحديث البيانات بنجاح');
-            } else {
-                data.id = 'C' + generateId();
-                appData.customers.push(data);
-                showToast('تم تسجيل العميل بنجاح');
-            }
-            
-            closeCustomerModal();
-            updateDashboard();
-            
-            const currentSearchPhone = document.getElementById('mainSearchPhone').value;
-            if(currentSearchPhone === data.phone && !document.getElementById('tab-search').classList.contains('hidden')){
-                executeCustomerSearch();
-            }
-        }
-
-        // Search & Details
-        function handleGlobalSearch() {
-            const phone = document.getElementById('globalPhoneSearchInput').value.trim();
-            if(phone) {
-                switchTab('search');
-                document.getElementById('mainSearchPhone').value = phone;
-                executeCustomerSearch();
-            }
-        }
-
-        function searchCustomerFromDash() {
-            const phone = document.getElementById('dashPhoneInput').value.trim();
-            if(phone) {
-                switchTab('search');
-                document.getElementById('mainSearchPhone').value = phone;
-                executeCustomerSearch();
-            }
-        }
-
-        function executeCustomerSearch() {
-            const phone = document.getElementById('mainSearchPhone').value.trim();
-            const area = document.getElementById('searchResultsArea');
-            if(!phone) return;
-
-            const cust = appData.customers.find(c => c.phone === phone || c.altPhone === phone);
-            
-            if(!cust) {
-                area.innerHTML = `
-                <div class="text-center py-16 glass-panel border border-dashed border-darkred">
-                    <i class="fa-solid fa-user-xmark text-5xl text-maroon-dark mb-4"></i>
-                    <h4 class="text-white font-black uppercase tracking-wider mb-4">العميل غير مسجل بالنظام</h4>
-                    <button onclick="openCustomerModal()" class="bg-white hover:bg-gray-200 text-black px-6 py-3 font-bold text-sm uppercase tracking-widest transition-colors">تسجيل العميل الآن</button>
-                </div>`;
-                return;
-            }
-            openCustomerDetails(cust.id);
-        }
-
-        function openCustomerDetails(id) {
-            const cust = getCustomerById(id);
-            if(!cust) return;
-            switchTab('search'); 
-            const area = document.getElementById('searchResultsArea');
-            const custTasks = appData.tasks.filter(t => t.custId === cust.id).sort((a,b) => new Date(b.date) - new Date(a.date));
-
-            // Status color matching the new red/black/white theme
-            let statusColor = cust.status === 'منفذة' ? 'text-white' : cust.status === 'مفقودة' ? 'text-gray-500' : 'text-darkred';
-
-            area.innerHTML = `
-            <div class="glass-panel border border-maroon-dark overflow-hidden">
-                <div class="p-6 border-b border-maroon-dark bg-primary flex flex-col sm:flex-row justify-between gap-4 items-start sm:items-center">
-                    <div class="flex items-center gap-4">
-                        <div class="w-16 h-16 bg-panel border border-darkred flex items-center justify-center text-2xl font-black text-white shadow-lg shadow-darkred/20">
-                            ${cust.name.substring(0,2)}
-                        </div>
-                        <div>
-                            <h3 class="font-black text-xl text-white tracking-wide">${cust.name}</h3>
-                            <div class="text-sm text-gray-400 flex items-center gap-4 mt-2 font-bold">
-                                <span><i class="fa-solid fa-phone mr-1 text-darkred"></i>${cust.phone}</span>
-                                <span class="uppercase tracking-widest ${statusColor}"><i class="fa-solid fa-circle text-[8px] mr-1"></i>${cust.status}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex gap-3">
-                        <button onclick="openFollowupModal('${cust.id}')" class="bg-maroon hover:bg-darkred text-white px-5 py-2.5 text-sm font-bold uppercase tracking-wider transition-colors"><i class="fa-solid fa-plus ml-2"></i>متابعة</button>
-                        <button onclick="openCustomerModal('${cust.id}')" class="bg-white hover:bg-gray-200 text-black px-5 py-2.5 text-sm font-bold uppercase tracking-wider transition-colors"><i class="fa-solid fa-pen ml-2"></i>تعديل</button>
+                        <button onclick="openProductModal('${c.id}','${p.id}')" class="text-sky hover:text-navy text-sm"><i class="fa-solid fa-pen"></i></button>
+                        ${isManager() ? `<button onclick="deleteProduct('${c.id}','${p.id}')" class="text-red-400 hover:text-red-600 text-sm"><i class="fa-solid fa-trash"></i></button>` : ''}
                     </div>
                 </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-maroon-dark">
-                    <div class="p-6 space-y-5 md:col-span-1 bg-panel/50">
-                        <h4 class="font-black text-sm text-darkred uppercase tracking-widest mb-4">تفاصيل الطلب</h4>
-                        <div class="text-sm border-b border-maroon-dark pb-2"><span class="text-gray-500 block mb-1 font-bold">المركبة المطلوبة</span><span class="font-black text-white">${cust.vehicle || '-'}</span></div>
-                        <div class="text-sm border-b border-maroon-dark pb-2"><span class="text-gray-500 block mb-1 font-bold">المحافظة</span><span class="font-black text-white">${cust.gov || '-'}</span></div>
-                        <div class="text-sm border-b border-maroon-dark pb-2"><span class="text-gray-500 block mb-1 font-bold">كلمة المرور المسجلة</span><span class="font-black text-white tracking-widest">${cust.password || '-'}</span></div>
-                        <div class="text-sm border-b border-maroon-dark pb-2"><span class="text-gray-500 block mb-1 font-bold">الرقم القومي</span><span class="font-black text-white tracking-widest">${cust.natId || '-'}</span></div>
-                        <div class="text-sm"><span class="text-gray-500 block mb-1 font-bold">المصدر</span><span class="font-black text-white">${cust.channel || '-'}</span></div>
-                        
-                        ${cust.payMethod === 'تقسيط' ? `
-                            <div class="mt-6 pt-4 border-t border-maroon">
-                                <h4 class="font-black text-sm text-white uppercase tracking-widest mb-3">بيانات التمويل</h4>
-                                <div class="text-sm mb-2"><span class="text-gray-500 font-bold">الجهة:</span> <span class="text-white">${cust.financeEntity || '-'}</span></div>
-                                <div class="text-sm mb-2"><span class="text-gray-500 font-bold">الإجمالي:</span> <span class="text-white">${Number(cust.total).toLocaleString()} ج</span></div>
-                                <div class="text-sm mb-2"><span class="text-gray-500 font-bold">المقدم:</span> <span class="text-white">${Number(cust.down).toLocaleString()} ج</span></div>
-                                <div class="text-sm font-black text-darkred mt-3 bg-primary p-2 border border-darkred inline-block">متبقي: ${Math.max(0, cust.total - cust.down).toLocaleString()} ج</div>
-                            </div>
-                        ` : `
-                            <div class="mt-6 pt-4 border-t border-maroon">
-                                <span class="bg-white text-black text-xs font-black px-3 py-1 uppercase tracking-widest">دفع نقدي (كاش)</span>
-                                <div class="text-sm mt-4 font-black"><span class="text-gray-500 mr-2">الإجمالي:</span> ${Number(cust.total).toLocaleString()} ج.م</div>
-                            </div>
-                        `}
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+                    <div><span class="text-ink-muted font-bold block">الدفع</span><b>${p.payMethod}</b></div>
+                    <div><span class="text-ink-muted font-bold block">الجهة</span><b>${p.financeEntity || '-'}</b></div>
+                    <div><span class="text-ink-muted font-bold block">المرحلة</span><b>${p.stage || '-'}</b></div>
+                    <div><span class="text-ink-muted font-bold block">الإجمالي</span><b>${Number(p.total || 0).toLocaleString()} ج.م</b></div>
+                    <div><span class="text-ink-muted font-bold block">المديونية</span><b class="text-amber-700">${Number(p.debt || 0).toLocaleString()} ج.م</b></div>
+                </div>
+                ${p.notes ? `<div class="mt-2 text-xs text-gray-600 bg-page p-2 rounded"><b>ملاحظات:</b> ${p.notes}</div>` : ''}
+                ${p.createdByName ? `<div class="mt-2 text-[10px] text-gray-400 font-bold">أضيف بواسطة: ${p.createdByName}</div>` : ''}
+            </div>`).join('');
+    }
+    html += `</div>
+
+        <h4 class="text-sm font-black text-navy-dark mb-3 border-b border-gray-200 pb-2">📅 سجل المتابعات (${(c.followups || []).length})</h4>
+        <div class="space-y-4">
+    `;
+
+    if (!c.followups || c.followups.length === 0) {
+        html += `<div class="text-center text-gray-400 py-6 font-bold bg-page rounded border border-dashed border-gray-300">لا توجد متابعات مسجلة.</div>`;
+    } else {
+        const sorted = [...c.followups].sort((a, b) => (b.date + (b.time||'')).localeCompare(a.date + (a.time||'')));
+        html += sorted.map(f => `
+            <div class="timeline-item">
+                <div class="timeline-dot"></div>
+                <div class="bg-blue-50 border border-blue-200 rounded p-4">
+                    <div class="flex flex-wrap gap-2 items-center mb-2">
+                        <span class="badge badge-blue">${f.reason}</span>
+                        <span class="text-xs text-gray-500 font-bold"><i class="fa-regular fa-calendar ml-1"></i>${f.date} ${f.time || ''}</span>
+                        ${f.byName ? `<span class="text-xs text-gray-400 font-bold"><i class="fa-solid fa-user ml-1"></i>${f.byName}</span>` : ''}
                     </div>
-                    
-                    <div class="p-6 md:col-span-2">
-                        <h4 class="font-black text-sm text-gray-400 uppercase tracking-widest mb-6">سجل المتابعات (Timeline)</h4>
-                        <div class="relative pl-2">
-                            ${custTasks.length === 0 ? '<div class="text-sm text-gray-500 font-bold p-4 border border-dashed border-maroon-dark text-center">لا يوجد سجل متابعات لهذا العميل.</div>' : ''}
-                            ${custTasks.map(t => `
-                                <div class="timeline-item relative pl-8 py-4 group">
-                                    <div class="absolute right-0 top-5 w-4 h-4 bg-primary border-2 ${t.completed ? 'border-white' : 'border-darkred'} z-10 rounded-full"></div>
-                                    <div class="bg-primary p-4 border border-maroon-dark group-hover:border-darkred transition-colors shadow-md">
-                                        <div class="flex justify-between items-start mb-3">
-                                            <span class="text-sm font-black ${t.completed ? 'text-white' : 'text-darkred'} tracking-widest">${t.date}</span>
-                                            ${!t.completed ? `<button onclick="markTaskDone('${t.id}', true)" class="text-xs bg-maroon hover:bg-darkred text-white px-3 py-1 font-bold uppercase transition-colors">إنهاء</button>` : '<span class="text-xs text-gray-400 font-bold uppercase"><i class="fa-solid fa-check mr-1 text-white"></i>منفذة</span>'}
-                                        </div>
-                                        <p class="text-sm text-gray-300 font-semibold leading-relaxed">${t.notes}</p>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
+                    <div class="text-sm text-ink">${f.notes}</div>
+                </div>
+            </div>`).join('');
+    }
+    html += `</div>`;
+
+    document.getElementById('customerDetailContent').innerHTML = html;
+}
+function closeCustomerDetail() {
+    document.getElementById('customerDetailModal').classList.add('hidden');
+    document.getElementById('customerDetailModal').classList.remove('flex');
+    currentDetailCustomerId = null;
+}
+
+// ==================== DELETE CUSTOMER ====================
+function deleteCustomer(id) {
+    if (!isManager()) return showToast('حذف العملاء للمدير فقط', 'error');
+    if (!confirm('⚠️ هل أنت متأكد من حذف هذا العميل؟')) return;
+    if (!confirm('⚠️ سيتم حذف كل المنتجات والمتابعات! متابعة؟')) return;
+    if (!confirm('🔴 تأكيد أخير: لا يمكن التراجع! متأكد؟')) return;
+    const c = appData.customers.find(x => x.id === id);
+    if (c) logActivity('delete_customer', `حذف العميل: ${c.name}`);
+    appData.customers = appData.customers.filter(x => x.id !== id);
+    appData.tasks = appData.tasks.filter(t => t.customerId !== id);
+    saveData(); updateDashboard(); renderFullTasks(); renderDashboardTasks();
+    closeCustomerDetail(); executeCustomerSearch();
+    showToast('تم حذف العميل نهائياً');
+}
+
+// ==================== SEARCH ====================
+function handleGlobalSearch() {
+    const q = document.getElementById('globalPhoneSearchInput').value.trim();
+    if (!q) return showToast('أدخل كلمة بحث', 'error');
+    switchTab('search');
+    document.getElementById('mainSearchPhone').value = q;
+    executeCustomerSearch();
+}
+function searchCustomerFromDash() {
+    const q = document.getElementById('dashPhoneInput').value.trim();
+    if (!q) return showToast('أدخل كلمة بحث', 'error');
+    switchTab('search');
+    document.getElementById('mainSearchPhone').value = q;
+    executeCustomerSearch();
+}
+function executeCustomerSearch() {
+    const q = document.getElementById('mainSearchPhone').value.trim();
+    const area = document.getElementById('searchResultsArea');
+    if (!q) {
+        area.innerHTML = `<div class="text-center py-16 panel text-gray-400 font-bold"><i class="fa-solid fa-search text-4xl mb-3 text-gray-300"></i><p>أدخل كلمة بحث.</p></div>`;
+        return;
+    }
+    const results = appData.customers.filter(c =>
+        (c.phone && c.phone.includes(q)) || (c.altPhone && c.altPhone.includes(q)) ||
+        (c.name && c.name.includes(q)) || (c.natId && c.natId.includes(q))
+    );
+
+    if (results.length === 0) {
+        area.innerHTML = `<div class="text-center py-16 panel text-gray-400 font-bold"><i class="fa-solid fa-user-slash text-4xl mb-3 text-gray-300"></i><p>لا يوجد نتائج لـ "<span class="text-navy font-black">${q}</span>"</p></div>`;
+        return;
+    }
+    area.innerHTML = results.map(c => renderCustomerCard(c)).join('');
+}
+
+function renderCustomerCard(c) {
+    const map = { 'منفذة': 'badge-green', 'جاري التقسيط': 'badge-yellow', 'مفتوحة': 'badge-blue', 'مفقودة': 'badge-red' };
+    const lastProd = (c.products && c.products.length) ? c.products[c.products.length - 1] : null;
+    const lastFp = (c.followups && c.followups.length) ? c.followups[0] : null;
+    const totalDebt = (c.products || []).reduce((s, p) => s + Number(p.debt || 0), 0);
+
+    return `
+        <div class="panel panel-hover p-5 mb-4 border-r-4 border-r-navy-dark">
+            <div class="flex flex-col md:flex-row justify-between gap-4 mb-4 pb-4 border-b border-gray-200">
+                <div>
+                    <h3 class="text-lg font-black text-navy-dark mb-2 cursor-pointer hover:text-sky" onclick="openCustomerDetail('${c.id}')">${c.name}</h3>
+                    <div class="flex flex-wrap gap-4 text-xs text-gray-600 font-bold">
+                        <span><i class="fa-solid fa-phone text-sky ml-1"></i>${c.phone}</span>
+                        ${c.altPhone ? `<span><i class="fa-brands fa-whatsapp text-green-500 ml-1"></i>${c.altPhone}</span>` : ''}
+                        ${c.gov ? `<span><i class="fa-solid fa-location-dot text-sky ml-1"></i>${c.gov}</span>` : ''}
+                        ${c.natId ? `<span><i class="fa-solid fa-id-card text-sky ml-1"></i>${c.natId}</span>` : ''}
                     </div>
+                </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    ${lastProd ? `<span class="badge ${map[lastProd.status] || 'badge-gray'}">${lastProd.status}</span>` : ''}
+                    <span class="badge badge-blue">${(c.products || []).length} منتج</span>
+                    ${totalDebt > 0 ? `<span class="badge badge-yellow">مديونية: ${totalDebt.toLocaleString()} ج.م</span>` : ''}
                 </div>
             </div>
-            `;
-        }
+            ${lastProd ? `
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4 bg-blue-50 p-3 rounded border border-blue-100">
+                <div><div class="text-[10px] font-black text-ink-muted uppercase mb-1">آخر منتج</div><div class="text-sm font-black text-navy-dark">${lastProd.vehicle || '-'}</div></div>
+                <div><div class="text-[10px] font-black text-ink-muted uppercase mb-1">الدفع</div><div class="text-sm font-black text-navy-dark">${lastProd.payMethod || '-'}</div></div>
+                <div><div class="text-[10px] font-black text-ink-muted uppercase mb-1">المرحلة</div><div class="text-sm font-black text-navy-dark">${lastProd.stage || '-'}</div></div>
+                <div><div class="text-[10px] font-black text-ink-muted uppercase mb-1">المديونية</div><div class="text-sm font-black text-amber-700">${Number(lastProd.debt || 0).toLocaleString()} ج.م</div></div>
+            </div>` : ''}
+            ${lastFp ? `
+            <div class="mb-4 text-xs bg-page p-3 rounded border border-gray-200">
+                <div class="font-black text-ink-muted mb-1">🔔 آخر متابعة:</div>
+                <div class="flex flex-wrap gap-2 items-center">
+                    <span class="badge badge-blue">${lastFp.reason}</span>
+                    <span class="text-gray-500 font-bold">${lastFp.date}</span>
+                    <span class="text-gray-700">${lastFp.notes}</span>
+                </div>
+            </div>` : ''}
+            <div class="flex flex-wrap gap-2 pt-3 border-t border-gray-200">
+                <button onclick="openCustomerDetail('${c.id}')" class="btn-secondary text-xs px-4 py-2 rounded"><i class="fa-solid fa-eye ml-1"></i> عرض الملف</button>
+                <button onclick="openProductModal('${c.id}')" class="btn-primary text-xs px-4 py-2 rounded"><i class="fa-solid fa-plus ml-1"></i> منتج جديد</button>
+                <button onclick="openFollowupModal('${c.id}')" class="btn-primary text-xs px-4 py-2 rounded"><i class="fa-solid fa-comment ml-1"></i> متابعة</button>
+                <button onclick="openCustomerModal('${c.id}')" class="btn-secondary text-xs px-4 py-2 rounded"><i class="fa-solid fa-pen ml-1"></i> تعديل</button>
+                ${isManager() ? `<button onclick="deleteCustomer('${c.id}')" class="btn-danger text-xs px-4 py-2 rounded mr-auto"><i class="fa-solid fa-trash ml-1"></i> حذف</button>` : ''}
+            </div>
+        </div>`;
+}
 
-        function openFollowupModal(custId) {
-            const cust = getCustomerById(custId);
-            if(!cust) return;
-            document.getElementById('taskForm').reset();
-            document.getElementById('taskCustId').value = custId;
-            document.getElementById('taskCustNameDisplay').value = cust.name;
-            
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            document.getElementById('taskDate').value = tomorrow.toISOString().split('T')[0];
-            
-            document.getElementById('followupModal').classList.remove('hidden');
-            document.getElementById('followupModal').classList.add('flex');
-        }
+// ==================== DASHBOARD ====================
+function updateDashboard() {
+    const cs = appData.customers;
+    const totalDebt = cs.reduce((s, c) => s + (c.products || []).reduce((ss, p) => ss + Number(p.debt || 0), 0), 0);
+    const salesDone = cs.filter(c => (c.products || []).some(p => p.status === 'منفذة')).length;
 
-        function closeFollowupModal() {
-            document.getElementById('followupModal').classList.add('hidden');
-            document.getElementById('followupModal').classList.remove('flex');
-        }
+    document.getElementById('kpiTotalCustomers').innerText = cs.length;
+    document.getElementById('kpiSalesDone').innerText = salesDone;
+    document.getElementById('kpiTotalDebt').innerText = totalDebt.toLocaleString();
 
-        function saveTaskData(e) {
-            e.preventDefault();
-            const data = {
-                id: 'T' + generateId(),
-                custId: document.getElementById('taskCustId').value,
-                date: document.getElementById('taskDate').value,
-                notes: document.getElementById('taskNotes').value,
-                completed: false
-            };
-            appData.tasks.push(data);
-            showToast('تم حفظ المتابعة بنجاح');
-            closeFollowupModal();
-            updateDashboard();
-            
-            const currentSearchPhone = document.getElementById('mainSearchPhone').value;
-            const cust = getCustomerById(data.custId);
-            if(cust && (currentSearchPhone === cust.phone || currentSearchPhone === cust.altPhone)) {
-                executeCustomerSearch();
-            }
-        }
+    const today = new Date().toISOString().split('T')[0];
+    const todayTasks = appData.tasks.filter(t => !t.completed && t.date <= today).length;
+    document.getElementById('kpiTodayTasks').innerText = todayTasks;
+    document.getElementById('pendingTasksBadge').innerText = todayTasks;
 
-        function markTaskDone(taskId, refreshSearch = false) {
-            const task = appData.tasks.find(t => t.id === taskId);
-            if(task) {
-                task.completed = true;
-                showToast('تم إنجاز المهمة', 'success');
-                updateDashboard();
-                if(document.getElementById('tab-tasks').classList.contains('block')) renderFullTasks();
-                if(refreshSearch) executeCustomerSearch();
-            }
-        }
+    const nc = document.getElementById('navTasksCount');
+    if (todayTasks > 0) { nc.classList.remove('hidden'); nc.innerText = todayTasks; }
+    else nc.classList.add('hidden');
+}
 
-        function renderFullTasks() {
-            const container = document.getElementById('fullTasksContainer');
-            const pendingTasks = appData.tasks.filter(t => !t.completed).sort((a,b) => new Date(a.date) - new Date(b.date));
-            
-            if(pendingTasks.length === 0) {
-                container.innerHTML = '<div class="text-center py-12 border border-dashed border-maroon-dark text-gray-500 font-bold uppercase tracking-widest">لا توجد مهام أو متابعات قيد الانتظار.</div>';
-                return;
-            }
+function renderDashboardTasks() {
+    const container = document.getElementById('dashboardTasksList');
+    const today = new Date().toISOString().split('T')[0];
+    const tasks = appData.tasks.filter(t => !t.completed && t.date <= today).slice(0, 5);
+    if (tasks.length === 0) {
+        container.innerHTML = `<div class="text-center text-gray-400 text-sm py-8 font-bold border border-dashed border-gray-300 rounded">لا توجد مهام مستحقة اليوم.</div>`;
+        return;
+    }
+    container.innerHTML = tasks.map(t => {
+        const c = appData.customers.find(x => x.id === t.customerId);
+        return `
+            <div class="flex items-start gap-3 p-3 bg-page border border-gray-200 rounded hover:border-sky transition-colors">
+                <button onclick="toggleTaskDone('${t.id}')" class="w-6 h-6 border-2 border-sky hover:bg-blue-100 rounded mt-0.5 shrink-0"></button>
+                <div class="flex-1">
+                    <div class="font-black text-navy-dark text-sm">${c ? c.name : 'عميل محذوف'}</div>
+                    <div class="text-xs text-gray-600 mt-1">${t.notes}</div>
+                    <div class="text-[10px] text-sky font-black mt-1"><i class="fa-regular fa-calendar ml-1"></i>${t.date}</div>
+                </div>
+            </div>`;
+    }).join('');
+}
 
-            container.innerHTML = pendingTasks.map(t => {
-                const cust = getCustomerById(t.custId);
-                const isOverdue = new Date(t.date) < new Date(new Date().toDateString());
-                
-                return `
-                <div class="flex flex-col sm:flex-row justify-between p-5 bg-panel border ${isOverdue ? 'border-darkred' : 'border-maroon-dark'} gap-5 items-start sm:items-center">
-                    <div class="flex-1">
-                        <div class="flex items-center gap-3 mb-2">
-                            <span class="font-black text-lg text-white">${cust ? cust.name : 'عميل محذوف'}</span>
-                            ${isOverdue ? '<span class="bg-darkred text-white text-[10px] px-2 py-1 font-black uppercase tracking-widest">متأخرة</span>' : ''}
+function renderFullTasks() {
+    const container = document.getElementById('fullTasksContainer');
+    if (!container) return;
+    if (appData.tasks.length === 0) {
+        container.innerHTML = `<div class="text-center text-gray-400 text-sm py-12 font-bold border border-dashed border-gray-300 rounded">لا توجد مهام.</div>`;
+        return;
+    }
+    const sorted = [...appData.tasks].sort((a, b) => new Date(a.date) - new Date(b.date));
+    container.innerHTML = sorted.map(t => {
+        const c = appData.customers.find(x => x.id === t.customerId);
+        const overdue = !t.completed && t.date < new Date().toISOString().split('T')[0];
+        return `
+            <div class="flex items-start gap-3 p-4 ${t.completed ? 'opacity-50 bg-gray-50' : 'bg-white'} border ${overdue ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded">
+                <button onclick="toggleTaskDone('${t.id}')" class="w-6 h-6 border-2 ${t.completed ? 'bg-green-500 border-green-500 text-white' : 'border-sky'} rounded mt-0.5 shrink-0 flex items-center justify-center">
+                    ${t.completed ? '<i class="fa-solid fa-check text-xs"></i>' : ''}
+                </button>
+                <div class="flex-1">
+                    <div class="flex justify-between items-start gap-3">
+                        <div>
+                            <div class="font-black text-navy-dark text-sm">${c ? c.name : 'عميل محذوف'}</div>
+                            <div class="text-xs text-gray-600 mt-1">${t.notes}</div>
+                            ${t.byName ? `<div class="text-[10px] text-gray-400 font-bold mt-1">بواسطة: ${t.byName}</div>` : ''}
                         </div>
-                        <div class="text-xs text-darkred font-bold mb-3 uppercase tracking-widest"><i class="fa-regular fa-calendar mr-1"></i> الموعد: ${t.date}</div>
-                        <p class="text-sm text-gray-300 bg-primary p-3 border border-maroon-dark font-semibold leading-relaxed">${t.notes}</p>
+                        <div class="text-[10px] font-black ${overdue ? 'text-red-600' : 'text-gray-500'} shrink-0">
+                            <i class="fa-regular fa-calendar ml-1"></i>${t.date}${overdue ? ' (متأخرة)' : ''}
+                        </div>
                     </div>
-                    <div class="flex sm:flex-col gap-3 w-full sm:w-auto">
-                        <button onclick="markTaskDone('${t.id}')" class="flex-1 sm:flex-none bg-white hover:bg-gray-200 text-black px-6 py-2.5 font-black uppercase tracking-wider text-sm transition-colors shadow-lg shadow-white/10"><i class="fa-solid fa-check mr-2"></i>تمت</button>
-                        <button onclick="openCustomerDetails('${t.custId}')" class="flex-1 sm:flex-none bg-maroon hover:bg-darkred text-white px-6 py-2.5 font-bold uppercase tracking-wider text-sm transition-colors border border-darkred">ملف العميل</button>
-                    </div>
-                </div>`;
-            }).join('');
-        }
+                </div>
+                <button onclick="deleteTask('${t.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash text-xs"></i></button>
+            </div>`;
+    }).join('');
+}
+function toggleTaskDone(id) {
+    const t = appData.tasks.find(x => x.id === id);
+    if (t) { t.completed = !t.completed; saveData(); renderFullTasks(); renderDashboardTasks(); updateDashboard(); }
+}
+function deleteTask(id) {
+    appData.tasks = appData.tasks.filter(t => t.id !== id);
+    saveData(); renderFullTasks(); renderDashboardTasks(); updateDashboard();
+}
 
-        function renderSettingsLists() {
-            const renderList = (elementId, arrayName) => {
-                const el = document.getElementById(elementId);
-                el.innerHTML = appData.config[arrayName].map(item => `
-                    <li class="flex justify-between items-center bg-primary p-3 border border-maroon-dark hover:border-darkred transition-colors">
-                        <span class="text-white">${item}</span>
-                        <button onclick="removeSettingItem('${arrayName}', '${item}')" class="text-gray-500 hover:text-white transition-colors"><i class="fa-solid fa-trash"></i></button>
-                    </li>`).join('');
-            };
-            renderList('settingsVehiclesList', 'vehicles');
-            renderList('settingsChannelsList', 'channels');
-            renderList('settingsFinanceList', 'financeEntities');
-        }
+// ==================== SETTINGS ====================
+function renderSettingsLists() {
+    if (!isManager()) return;
+    const render = (id, arr, type) => {
+        const ul = document.getElementById(id);
+        if (!ul) return;
+        ul.innerHTML = arr.map((item, i) => `
+            <li class="flex justify-between items-center p-3 bg-page border border-gray-200 rounded hover:border-sky transition-colors">
+                <span class="text-ink">${item}</span>
+                <button onclick="removeSettingItem('${type}', ${i})" class="text-red-400 hover:text-red-600"><i class="fa-solid fa-trash text-xs"></i></button>
+            </li>`).join('') || '<li class="text-center text-gray-400 py-4 text-xs font-bold">لا يوجد عناصر</li>';
+    };
+    render('settingsVehiclesList', appData.config.vehicles, 'vehicles');
+    render('settingsChannelsList', appData.config.channels, 'channels');
+    render('settingsFinanceList', appData.config.financeEntities, 'financeEntities');
+    render('settingsFollowupList', appData.config.followupReasons, 'followupReasons');
+    render('settingsStagesList', appData.config.installmentStages, 'installmentStages');
+    render('settingsGovList', appData.config.governorates, 'governorates');
+}
+function addSettingItem(type) {
+    if (!isManager()) return showToast('الإعدادات للمدير فقط', 'error');
+    const v = prompt('أدخل القيمة:');
+    if (!v || !v.trim()) return;
+    appData.config[type].push(v.trim());
+    saveData(); renderSettingsLists(); populateDropdowns();
+    logActivity('settings', `إضافة عنصر في ${type}: ${v}`);
+    showToast('تمت الإضافة');
+}
+function removeSettingItem(type, i) {
+    if (!isManager()) return showToast('الإعدادات للمدير فقط', 'error');
+    if (!confirm('حذف؟')) return;
+    const removed = appData.config[type][i];
+    appData.config[type].splice(i, 1);
+    saveData(); renderSettingsLists(); populateDropdowns();
+    logActivity('settings', `حذف عنصر من ${type}: ${removed}`);
+    showToast('تم الحذف');
+}
 
-        function addSettingItem(type) {
-            let label = type === 'vehicles' ? 'المركبة' : type === 'channels' ? 'القناة' : 'الجهة';
-            let arrayName = type === 'vehicles' ? 'vehicles' : type === 'channels' ? 'channels' : 'financeEntities';
-            
-            const val = window.prompt(`أدخل اسم ${label} الجديدة:`);
-            if(val && val.trim()) {
-                appData.config[arrayName].push(val.trim());
-                renderSettingsLists();
-                populateDropdowns();
-                showToast(`تمت الإضافة بنجاح`);
+// ==================== CHARTS ====================
+function initCharts() {
+    if (!document.getElementById('chartStatus')) return;
+    const statusCtx = document.getElementById('chartStatus');
+    const govCtx = document.getElementById('chartGov');
+    const vehCtx = document.getElementById('chartVehicles');
+
+    if (statusChartInstance) statusChartInstance.destroy();
+    if (govChartInstance) govChartInstance.destroy();
+    if (vehicleChartInstance) vehicleChartInstance.destroy();
+
+    const statuses = ['مفتوحة', 'جاري التقسيط', 'منفذة', 'مفقودة'];
+    const sc = statuses.map(s => appData.customers.reduce((acc, c) => acc + (c.products || []).filter(p => p.status === s).length, 0));
+
+    statusChartInstance = new Chart(statusCtx, {
+        type: 'doughnut',
+        data: { labels: statuses, datasets: [{ data: sc, backgroundColor: ['#3b82f6', '#f59e0b', '#10b981', '#ef4444'], borderColor: '#fff', borderWidth: 3 }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#475569', font: { family: 'Cairo', weight: 'bold', size: 12 }, padding: 15 } } } }
+    });
+
+    const govs = appData.config.governorates;
+    const gc = govs.map(g => appData.customers.filter(c => c.gov === g).length);
+
+    govChartInstance = new Chart(govCtx, {
+        type: 'bar',
+        data: { labels: govs, datasets: [{ label: 'عدد العملاء', data: gc, backgroundColor: '#1e40af', borderColor: '#1e3a8a', borderWidth: 1, borderRadius: 4 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#64748b', font: { family: 'Cairo', size: 10, weight: 'bold' } }, grid: { display: false } },
+                y: { ticks: { color: '#64748b' }, grid: { color: '#e2e8f0' }, beginAtZero: true }
             }
         }
-        
-        function removeSettingItem(arrayName, val) {
-            if(window.confirm('تأكيد الحذف النهائي؟')) {
-                appData.config[arrayName] = appData.config[arrayName].filter(x => x !== val);
-                renderSettingsLists();
-                populateDropdowns();
+    });
+
+    const vehicles = appData.config.vehicles;
+    const vc = vehicles.map(v => appData.customers.reduce((acc, c) => acc + (c.products || []).filter(p => p.vehicle === v).length, 0));
+
+    vehicleChartInstance = new Chart(vehCtx, {
+        type: 'bar',
+        data: { labels: vehicles, datasets: [{ label: 'عدد الطلبات', data: vc, backgroundColor: '#0ea5e9', borderColor: '#0284c7', borderWidth: 1, borderRadius: 4 }] },
+        options: {
+            responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { ticks: { color: '#64748b' }, grid: { color: '#e2e8f0' }, beginAtZero: true },
+                y: { ticks: { color: '#64748b', font: { family: 'Cairo', weight: 'bold' } }, grid: { display: false } }
             }
         }
+    });
+}
 
-        let chartInstances = {};
-        
-        function initCharts() {
-            Chart.defaults.color = '#9ca3af'; // gray-400
-            Chart.defaults.font.family = 'Cairo';
-            Chart.defaults.font.weight = 'bold';
-        }
+// ==================== TOAST ====================
+function showToast(msg, type = 'success') {
+    const c = document.getElementById('toastContainer');
+    const el = document.createElement('div');
+    el.className = `toast-anim pointer-events-auto px-5 py-3 rounded shadow-lg font-black text-sm ${type === 'error' ? 'bg-red-500 text-white' : 'bg-navy-dark text-white'}`;
+    el.innerHTML = `<i class="fa-solid ${type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-check'} ml-2"></i>${msg}`;
+    c.appendChild(el);
+    setTimeout(() => {
+        el.style.transition = 'opacity 0.3s'; el.style.opacity = '0';
+        setTimeout(() => el.remove(), 300);
+    }, 3000);
+}
 
-        function renderCharts() {
-            const statusCounts = {'مفتوحة':0, 'جاري التقسيط':0, 'منفذة':0, 'مفقودة':0};
-            const govCounts = {};
-            
-            appData.customers.forEach(c => {
-                if(statusCounts[c.status] !== undefined) statusCounts[c.status]++;
-                if(c.gov) govCounts[c.gov] = (govCounts[c.gov] || 0) + 1;
-            });
-
-            // New Theme Colors for charts: Dark Red, Maroon, White, Grey
-            const chartColors = ['#ffffff', '#8b0000', '#580f1c', '#333333'];
-
-            const ctxStatus = document.getElementById('chartStatus');
-            if(chartInstances.status) chartInstances.status.destroy();
-            chartInstances.status = new Chart(ctxStatus, {
-                type: 'doughnut',
-                data: {
-                    labels: Object.keys(statusCounts),
-                    datasets: [{
-                        data: Object.values(statusCounts),
-                        backgroundColor: chartColors,
-                        borderWidth: 1,
-                        borderColor: '#0a0a0a'
-                    }]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false, 
-                    plugins:{ legend:{position:'bottom', labels: {color: '#fff'} } },
-                    cutout: '70%'
-                }
-            });
-
-            const ctxGov = document.getElementById('chartGov');
-            if(chartInstances.gov) chartInstances.gov.destroy();
-            
-            const sortedGovs = Object.entries(govCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
-            
-            chartInstances.gov = new Chart(ctxGov, {
-                type: 'bar',
-                data: {
-                    labels: sortedGovs.length ? sortedGovs.map(g => g[0]) : ['لايوجد بيانات'],
-                    datasets: [{
-                        label: 'عدد العملاء',
-                        data: sortedGovs.length ? sortedGovs.map(g => g[1]) : [0],
-                        backgroundColor: '#8b0000',
-                        borderColor: '#580f1c',
-                        borderWidth: 1
-                    }]
-                },
-                options: { 
-                    responsive: true, maintainAspectRatio: false,
-                    scales: { 
-                        y: { beginAtZero: true, ticks: {stepSize: 1, color: '#9ca3af'}, grid: {color: '#2a0a0f'} },
-                        x: { ticks: {color: '#9ca3af'}, grid: {display: false} }
-                    },
-                    plugins: { legend: {display: false} }
-                }
-            });
-        }
-    </script>
+// ==================== EVENTS ====================
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeCustomerModal(); closeFollowupModal(); closeProductModal(); closeCustomerDetail(); closeEmployeeModal();
+    }
+});
+</script>
 </body>
 </html>
