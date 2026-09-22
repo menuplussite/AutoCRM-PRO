@@ -9,7 +9,7 @@
 tailwind.config = {
     theme: { extend: {
         colors: {
-            'navy': { DEFAULT: '#1e3a8a', dark: '#1e40af', light: '#3b82f6', pale: '#dbeafe' },
+            'navy': { DEFAULT: '#1e3a8a', dark: '#1e40af', light: '#3b82f6' },
             'sky': { DEFAULT: '#0ea5e9', light: '#7dd3fc' },
             'panel': '#ffffff', 'page': '#eef2f7',
             'ink': { DEFAULT: '#0f172a', muted: '#64748b', light: '#94a3b8' }
@@ -155,7 +155,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
                 <button onclick="switchTab('myactivity')" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-page rounded" data-tab="myactivity"><i class="fa-solid fa-clock-rotate-left w-5 text-center"></i><span>نشاطي</span></button>
             </div>
         </div>
-        <div class="p-4 border-t border-gray-200 text-center"><span class="text-[10px] text-gray-400 font-black uppercase">AutoCRM v6.3</span></div>
+        <div class="p-4 border-t border-gray-200 text-center"><span class="text-[10px] text-gray-400 font-black uppercase">AutoCRM v7.0 Firebase</span></div>
     </aside>
 
     <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-page">
@@ -291,7 +291,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
     </div>
 </div>
 
-<!-- ==================== 🆕 CUSTOMER MODAL (الجديد) ==================== -->
+<!-- CUSTOMER MODAL -->
 <div id="customerModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white w-full max-w-4xl shadow-2xl my-auto rounded-lg modal-anim">
         <div class="p-5 flex items-center justify-between bg-gradient-to-l from-navy-dark to-navy rounded-t-lg">
@@ -305,7 +305,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
         <form id="customerForm" onsubmit="saveCustomerData(event)" class="p-6 space-y-6 max-h-[80vh] overflow-y-auto">
             <input type="hidden" id="custId" value="">
 
-            <!-- أ. البيانات الشخصية -->
             <div class="space-y-4">
                 <h4 class="text-xs font-black text-sky uppercase tracking-wider border-b border-gray-200 pb-2">أ. البيانات الشخصية والجغرافية</h4>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -322,7 +321,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
                 </div>
             </div>
 
-            <!-- ب. بيانات التواصل -->
             <div class="space-y-4">
                 <h4 class="text-xs font-black text-sky uppercase tracking-wider border-b border-gray-200 pb-2">ب. بيانات التواصل والاهتمام</h4>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -336,11 +334,10 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
                             <option value="مفقودة">مفقودة / ملغاة</option>
                         </select>
                     </div>
-                    <div class="md:col-span-3"><label class="block text-xs font-black text-ink-muted mb-1.5">ملاحظات عامة</label><textarea id="custNotes" rows="2" placeholder="ملخص الاتصال، الشروط..." class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></textarea></div>
+                    <div class="md:col-span-3"><label class="block text-xs font-black text-ink-muted mb-1.5">ملاحظات عامة</label><textarea id="custNotes" rows="2" placeholder="ملخص الاتصال..." class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></textarea></div>
                 </div>
             </div>
 
-            <!-- 🔧 الشاسيه والموتور -->
             <div class="bg-blue-50 p-4 rounded border border-blue-200">
                 <h4 class="text-xs font-black text-navy-dark uppercase border-b border-blue-200 pb-2 mb-4">🔧 رقم الشاسيه والموتور (إن وجد)</h4>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -349,7 +346,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
                 </div>
             </div>
 
-            <!-- جـ. بيانات التقسيط -->
             <div id="financeSection" class="space-y-4">
                 <h4 class="text-xs font-black text-amber-600 uppercase tracking-wider border-b border-gray-200 pb-2">جـ. بيانات التقسيط / المنتج الأول</h4>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -369,7 +365,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
                 </div>
             </div>
 
-            <!-- Footer -->
             <div class="pt-5 border-t border-gray-200 flex flex-wrap justify-between items-center gap-3">
                 <div class="text-xs text-gray-500">* سيتم حفظ التاريخ والموظف الحالي تلقائياً</div>
                 <div class="flex gap-3">
@@ -485,20 +480,9 @@ const firebaseConfig = {
     appId: "1:810896938436:web:2da1ae985feb9b8c124091"
 };
 
-try {
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const MAIN_DOC = db.collection('autocrm').doc('main');
-    console.log('✅ Firebase initialized');
-
-    window.fbDoc = MAIN_DOC;
-    window.getDocFn = () => MAIN_DOC.get();
-    window.setDocFn = (ref, data) => ref.set(data);
-    window.onSnapshotFn = (ref, cb) => ref.onSnapshot(cb);
-    window.dispatchEvent(new Event('firebase-loaded'));
-} catch (e) {
-    console.error('❌ Firebase init error:', e);
-}
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+console.log('✅ Firebase initialized');
 </script>
 
 <script>
@@ -525,9 +509,9 @@ let currentLoginType = 'admin';
 let currentDetailCustomerId = null;
 let cloudEnabled = false;
 let isSyncing = false;
-let dbRef = null;
+let activeDocRef = null;
 
-// ==================== CLOUD ====================
+// ==================== CLOUD STATUS ====================
 function setCloudStatus(status, text) {
     const el = document.getElementById('cloudStatus');
     if (!el) return;
@@ -536,91 +520,96 @@ function setCloudStatus(status, text) {
     el.innerHTML = `<i class="fa-solid ${ic}"></i> <span>${text}</span>`;
 }
 
-function checkSnapExists(snap) {
-    try {
-        if (typeof snap.exists === 'function') return snap.exists();
-        if (typeof snap.exists === 'boolean') return snap.exists;
-        if (snap.data && typeof snap.data === 'function') return snap.data() !== undefined;
-        return false;
-    } catch(e) { return false; }
-}
+// ==================== DETECT FIRESTORE PATH ====================
+async function detectAndConnect() {
+    console.log('🔍 Looking for existing data...');
+    setCloudStatus('syncing', 'جاري البحث...');
 
-window.addEventListener('firebase-loaded', () => {
-    console.log('✅ firebase-loaded event received');
-    dbRef = window.fbDoc;
-    startRealtimeSync();
-});
+    const paths = [
+        ['main', 'main'],       // ← الأكثر احتمالاً (شفناه في Console)
+        ['autocrm', 'main'],
+        ['crm', 'main'],
+        ['data', 'main'],
+        ['appData', 'main'],
+        ['customers', 'main']
+    ];
 
-async function startRealtimeSync() {
-    if (!dbRef) {
-        console.warn('⚠️ No dbRef');
-        cloudEnabled = false;
-        setCloudStatus('offline', 'وضع محلي');
-        loadFromLocal();
-        populateDropdowns();
-        renderSettingsLists();
-        checkLoginState();
-        return;
-    }
-    console.log('🔄 Starting realtime sync...');
-    setCloudStatus('syncing', 'جاري الاتصال...');
+    let foundRef = null;
+    let foundData = null;
 
-    try {
-        const snap = await window.getDocFn(dbRef);
-        console.log('📥 Snapshot received');
-        const exists = checkSnapExists(snap);
-        console.log('📥 snap.exists computed:', exists);
-
-        if (exists) {
-            const d = snap.data();
-            if (d.appData) appData = { ...appData, ...d.appData };
-            if (d.users && Array.isArray(d.users) && d.users.length) usersDb = d.users;
-            if (d.appData && d.appData.config) appData.config = { ...appData.config, ...d.appData.config };
-            console.log('✅ Data loaded from Firebase');
-        } else {
-            console.log('⚠️ No data, creating initial...');
-            await saveToCloud();
-        }
-        cloudEnabled = true;
-        setCloudStatus('online', 'متصل بالسحابة');
-        saveToLocal();
-    } catch (e) {
-        console.error('❌ Init error:', e);
-        cloudEnabled = false;
-        setCloudStatus('offline', 'وضع محلي');
-        loadFromLocal();
-    }
-
-    try {
-        window.onSnapshotFn(dbRef, (snap) => {
-            if (!checkSnapExists(snap)) return;
-            const d = snap.data();
-            if (!isSyncing) {
-                if (d.appData) appData = { ...appData, ...d.appData };
-                if (d.users && Array.isArray(d.users) && d.users.length) usersDb = d.users;
-                saveToLocal();
-                if (currentUser && currentUser.roleType === 'admin') {
-                    updateDashboard(); renderDashboardTasks(); renderFullTasks();
-                    if (document.getElementById('tab-employees').classList.contains('block')) renderEmployeesList();
-                    if (document.getElementById('tab-settings').classList.contains('block')) renderSettingsLists();
-                }
+    for (const [coll, docId] of paths) {
+        try {
+            console.log(`   Trying: ${coll}/${docId}`);
+            const snap = await db.collection(coll).doc(docId).get();
+            if (snap.exists) {
+                foundRef = db.collection(coll).doc(docId);
+                foundData = snap.data();
+                console.log(`   ✅ FOUND at: ${coll}/${docId}`);
+                break;
+            } else {
+                console.log(`   ⚠️ Empty: ${coll}/${docId}`);
             }
-        });
-        console.log('👂 Listening for updates');
-    } catch (e) { console.error('❌ Snapshot error:', e); }
+        } catch(e) {
+            console.log(`   ❌ Error at ${coll}/${docId}:`, e.message);
+        }
+    }
 
-    populateDropdowns();
-    renderSettingsLists();
-    checkLoginState();
+    if (!foundRef) {
+        foundRef = db.collection('autocrm').doc('main');
+        console.log('📝 Creating new at: autocrm/main');
+    }
+
+    activeDocRef = foundRef;
+    window.fbDoc = foundRef;
+
+    if (foundData) {
+        if (foundData.appData) {
+            const loaded = foundData.appData;
+            if (loaded.customers) appData.customers = loaded.customers;
+            if (loaded.tasks) appData.tasks = loaded.tasks;
+            if (loaded.activityLog) appData.activityLog = loaded.activityLog;
+            if (loaded.config) appData.config = { ...appData.config, ...loaded.config };
+        }
+        if (foundData.users && Array.isArray(foundData.users) && foundData.users.length) {
+            usersDb = foundData.users;
+        }
+        console.log('✅ Loaded existing data. Customers:', appData.customers.length);
+    } else {
+        await saveToCloud();
+    }
+
+    cloudEnabled = true;
+    setCloudStatus('online', 'متصل بالسحابة');
+    saveToLocal();
+
+    // Real-time listener
+    activeDocRef.onSnapshot(snap => {
+        if (!snap.exists) return;
+        if (isSyncing) return;
+        const d = snap.data();
+        if (d.appData) {
+            const loaded = d.appData;
+            if (loaded.customers) appData.customers = loaded.customers;
+            if (loaded.tasks) appData.tasks = loaded.tasks;
+            if (loaded.activityLog) appData.activityLog = loaded.activityLog;
+            if (loaded.config) appData.config = { ...appData.config, ...loaded.config };
+        }
+        if (d.users && Array.isArray(d.users) && d.users.length) usersDb = d.users;
+        saveToLocal();
+        if (currentUser && currentUser.roleType === 'admin') {
+            updateDashboard(); renderDashboardTasks(); renderFullTasks();
+        }
+        console.log('📥 Real-time update received');
+    });
 }
 
 async function saveToCloud() {
     saveToLocal();
-    if (!dbRef) return;
+    if (!activeDocRef) return;
     isSyncing = true;
     try {
         setCloudStatus('syncing', 'جاري الحفظ...');
-        await window.setDocFn(dbRef, { appData, users: usersDb, updatedAt: Date.now() });
+        await activeDocRef.set({ appData, users: usersDb, updatedAt: Date.now() });
         setCloudStatus('online', 'متصل بالسحابة');
     } catch (e) {
         console.error('❌ Save error:', e);
@@ -631,15 +620,17 @@ async function saveToCloud() {
 
 function saveToLocal() {
     try {
-        localStorage.setItem('autoCrmDataV6', JSON.stringify(appData));
-        localStorage.setItem('autoCrmUsersV6', JSON.stringify(usersDb));
-    } catch (e) {}
+        localStorage.setItem('autoCrmDataV7', JSON.stringify(appData));
+        localStorage.setItem('autoCrmUsersV7', JSON.stringify(usersDb));
+    } catch(e) {}
 }
 function loadFromLocal() {
-    const d = localStorage.getItem('autoCrmDataV6');
-    const u = localStorage.getItem('autoCrmUsersV6');
-    if (d) { try { appData = { ...appData, ...JSON.parse(d) }; } catch(e){} }
-    if (u) { try { const p = JSON.parse(u); if (Array.isArray(p) && p.length) usersDb = p; } catch(e){} }
+    try {
+        const d = localStorage.getItem('autoCrmDataV7');
+        const u = localStorage.getItem('autoCrmUsersV7');
+        if (d) { const p = JSON.parse(d); if (p.customers) appData = { ...appData, ...p }; }
+        if (u) { const p = JSON.parse(u); if (Array.isArray(p) && p.length) usersDb = p; }
+    } catch(e) {}
 }
 
 function saveData() { saveToCloud(); }
@@ -662,21 +653,31 @@ function isManager() { return currentUser && currentUser.role === 'manager'; }
 let statusChartInstance, govChartInstance, vehicleChartInstance;
 
 // ==================== INIT ====================
-window.onload = () => {
-    console.log('🚀 window.onload');
+window.addEventListener('load', async () => {
+    console.log('📄 Page loaded');
     loadFromLocal();
     populateDropdowns();
     renderSettingsLists();
 
-    // لو Firebase مجهّز بعد 10 ثواني ومش اشتغل، اشتغل محلي
+    try {
+        await detectAndConnect();
+    } catch(e) {
+        console.error('❌ Connect failed:', e);
+        setCloudStatus('offline', 'وضع محلي');
+        cloudEnabled = false;
+    }
+
+    // Timeout fallback
     setTimeout(() => {
         if (!cloudEnabled && !currentUser) {
-            console.warn('⚠️ Firebase timeout - falling back to local');
             setCloudStatus('offline', 'وضع محلي');
             checkLoginState();
         }
-    }, 10000);
-};
+    }, 8000);
+
+    // If already loaded fast
+    if (cloudEnabled) checkLoginState();
+});
 
 // ==================== LOGIN ====================
 function setLoginType(type) {
@@ -698,7 +699,7 @@ function setLoginType(type) {
 }
 
 function checkLoginState() {
-    const s = sessionStorage.getItem('autoCrmUserV6');
+    const s = sessionStorage.getItem('autoCrmUserV7');
     if (s) {
         const sessionUser = JSON.parse(s);
         if (sessionUser.roleType === 'customer') { currentUser = sessionUser; showCustomerPortal(); }
@@ -718,7 +719,7 @@ function handleLogin(e) {
         const user = usersDb.find(x => x.username === u && x.password === p);
         if (user) {
             currentUser = { ...user, roleType: 'admin' };
-            sessionStorage.setItem('autoCrmUserV6', JSON.stringify(currentUser));
+            sessionStorage.setItem('autoCrmUserV7', JSON.stringify(currentUser));
             logActivity('login', `دخول ${user.role === 'manager' ? 'المدير' : 'الموظف'} ${user.name}`);
             showApp(); showToast(`مرحباً، ${user.name}`);
         } else showToast('بيانات غير صحيحة!', 'error');
@@ -726,7 +727,7 @@ function handleLogin(e) {
         const cust = appData.customers.find(c => (c.phone === u || c.altPhone === u) && c.password === p);
         if (cust) {
             currentUser = { ...cust, roleType: 'customer' };
-            sessionStorage.setItem('autoCrmUserV6', JSON.stringify(currentUser));
+            sessionStorage.setItem('autoCrmUserV7', JSON.stringify(currentUser));
             showCustomerPortal(); showToast(`مرحباً، ${cust.name}`);
         } else showToast('خطأ في البيانات!', 'error');
     }
@@ -734,7 +735,7 @@ function handleLogin(e) {
 
 function handleLogout() {
     if (currentUser && currentUser.roleType === 'admin') logActivity('logout', `خروج ${currentUser.name}`);
-    sessionStorage.removeItem('autoCrmUserV6');
+    sessionStorage.removeItem('autoCrmUserV7');
     currentUser = null;
     document.getElementById('loginForm').reset();
     switchTab('dashboard');
@@ -1029,7 +1030,6 @@ function openCustomerModal(id) {
         const c = appData.customers.find(x => x.id === id);
         if (!c) return;
         document.getElementById('custModalTitle').innerText = 'تعديل ملف العميل';
-        // ⚠️ عند التعديل: نخفي قسم التقسيط (زي ما طلبت)
         document.getElementById('financeSection').style.display = 'none';
 
         document.getElementById('custId').value = c.id;
@@ -1082,7 +1082,6 @@ function saveCustomerData(e) {
     };
 
     if (id) {
-        // ===== تعديل =====
         const idx = appData.customers.findIndex(c => c.id === id);
         if (idx >= 0) {
             const existing = appData.customers[idx];
@@ -1099,7 +1098,6 @@ function saveCustomerData(e) {
         logActivity('edit_customer', `تعديل: ${baseData.name}`);
         showToast('تم التحديث');
     } else {
-        // ===== إضافة =====
         const payMethodRaw = document.getElementById('custPayMethod').value;
         const payMethod = payMethodRaw === 'تقسيط' ? 'تقسيط' : 'كاش';
         const t = Number(document.getElementById('custTotal').value) || 0;
