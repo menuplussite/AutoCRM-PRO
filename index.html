@@ -7,73 +7,70 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
 tailwind.config = {
-    theme: {
-        extend: {
-            colors: {
-                'navy': { DEFAULT: '#1e3a8a', dark: '#1e40af', light: '#3b82f6', pale: '#dbeafe' },
-                'sky': { DEFAULT: '#0ea5e9', light: '#7dd3fc' },
-                'panel': '#ffffff', 'page': '#eef2f7',
-                'ink': { DEFAULT: '#0f172a', muted: '#64748b', light: '#94a3b8' }
-            },
-            fontFamily: { cairo: ['Cairo', 'sans-serif'] }
-        }
-    }
+    theme: { extend: {
+        colors: {
+            'navy': { DEFAULT: '#1e3a8a', dark: '#1e40af', light: '#3b82f6', pale: '#dbeafe' },
+            'sky': { DEFAULT: '#0ea5e9', light: '#7dd3fc' },
+            'panel': '#ffffff', 'page': '#eef2f7',
+            'ink': { DEFAULT: '#0f172a', muted: '#64748b', light: '#94a3b8' }
+        },
+        fontFamily: { cairo: ['Cairo', 'sans-serif'] }
+    }}
 }
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-    * { font-family: 'Cairo', sans-serif; }
-    body { background: #eef2f7; color: #0f172a; }
-    .panel { background: #fff; border: 1px solid #dbe3ec; border-radius: 6px; box-shadow: 0 1px 3px rgba(30,58,138,0.06); }
-    .panel-hover:hover { box-shadow: 0 4px 12px rgba(30,58,138,0.12); }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #e2e8f0; }
-    ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
-    .active-nav { background: linear-gradient(90deg,#1e40af 0%,#1e3a8a 100%) !important; color: #fff !important; border-right: 4px solid #3b82f6 !important; }
-    input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6 !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
-    .btn-primary { background: linear-gradient(135deg,#1e40af 0%,#1e3a8a 100%); color: #fff; font-weight: 800; transition: all 0.2s; }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(30,64,175,0.3); }
-    .btn-secondary { background: #fff; color: #1e40af; border: 1px solid #93b4e0; font-weight: 800; }
-    .btn-secondary:hover { background: #dbeafe; }
-    .btn-danger { background: #dc2626; color: #fff; font-weight: 800; }
-    .btn-danger:hover { background: #b91c1c; }
-    .timeline-item { position: relative; padding-right: 40px; }
-    .timeline-item::before { content: ''; position: absolute; right: 11px; top: 30px; bottom: -18px; width: 2px; background: #cbd5e1; }
-    .timeline-item:last-child::before { display: none; }
-    .timeline-dot { position: absolute; right: 4px; top: 6px; width: 18px; height: 18px; border-radius: 50%; background: #3b82f6; border: 3px solid #dbeafe; }
-    .badge { display: inline-block; padding: 3px 10px; font-size: 11px; font-weight: 800; border-radius: 4px; }
-    .badge-green { background: #dcfce7; color: #15803d; } .badge-yellow { background: #fef3c7; color: #a16207; }
-    .badge-blue { background: #dbeafe; color: #1e40af; } .badge-red { background: #fee2e2; color: #b91c1c; }
-    .badge-gray { background: #e5e7eb; color: #4b5563; }
-    .toast-anim { animation: slideIn 0.35s; }
-    @keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-    .modal-backdrop { backdrop-filter: blur(4px); background: rgba(15,23,42,0.5); }
-    .modal-anim { animation: modalPop 0.25s ease; }
-    @keyframes modalPop { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-    .stat-card { transition: all 0.2s; }
-    .stat-card:hover { transform: translateY(-3px); }
-    .role-tag { display:inline-block; padding:2px 8px; border-radius: 99px; font-size: 10px; font-weight: 900; }
-    .role-manager { background: linear-gradient(135deg,#7c3aed,#6d28d9); color: #fff; }
-    .role-employee { background: linear-gradient(135deg,#0891b2,#0e7490); color: #fff; }
-    .cloud-status { position: fixed; top: 70px; left: 20px; z-index: 90; padding: 6px 12px; border-radius: 99px; font-size: 11px; font-weight: 900; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-    .cloud-online { background: #10b981; color: #fff; }
-    .cloud-offline { background: #ef4444; color: #fff; }
-    .cloud-syncing { background: #f59e0b; color: #fff; }
+* { font-family: 'Cairo', sans-serif; }
+body { background: #eef2f7; color: #0f172a; }
+.panel { background: #fff; border: 1px solid #dbe3ec; border-radius: 6px; box-shadow: 0 1px 3px rgba(30,58,138,0.06); }
+.panel-hover:hover { box-shadow: 0 4px 12px rgba(30,58,138,0.12); }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #e2e8f0; }
+::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+.active-nav { background: linear-gradient(90deg,#1e40af 0%,#1e3a8a 100%) !important; color: #fff !important; border-right: 4px solid #3b82f6 !important; }
+input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6 !important; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); }
+.btn-primary { background: linear-gradient(135deg,#1e40af 0%,#1e3a8a 100%); color: #fff; font-weight: 800; transition: all 0.2s; }
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(30,64,175,0.3); }
+.btn-secondary { background: #fff; color: #1e40af; border: 1px solid #93b4e0; font-weight: 800; }
+.btn-secondary:hover { background: #dbeafe; }
+.btn-danger { background: #dc2626; color: #fff; font-weight: 800; }
+.timeline-item { position: relative; padding-right: 40px; }
+.timeline-item::before { content: ''; position: absolute; right: 11px; top: 30px; bottom: -18px; width: 2px; background: #cbd5e1; }
+.timeline-item:last-child::before { display: none; }
+.timeline-dot { position: absolute; right: 4px; top: 6px; width: 18px; height: 18px; border-radius: 50%; background: #3b82f6; border: 3px solid #dbeafe; }
+.badge { display: inline-block; padding: 3px 10px; font-size: 11px; font-weight: 800; border-radius: 4px; }
+.badge-green { background: #dcfce7; color: #15803d; } .badge-yellow { background: #fef3c7; color: #a16207; }
+.badge-blue { background: #dbeafe; color: #1e40af; } .badge-red { background: #fee2e2; color: #b91c1c; }
+.badge-gray { background: #e5e7eb; color: #4b5563; }
+.toast-anim { animation: slideIn 0.35s; }
+@keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+.modal-backdrop { backdrop-filter: blur(4px); background: rgba(15,23,42,0.5); }
+.modal-anim { animation: modalPop 0.25s ease; }
+@keyframes modalPop { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.stat-card { transition: all 0.2s; }
+.stat-card:hover { transform: translateY(-3px); }
+.role-tag { display:inline-block; padding:2px 8px; border-radius: 99px; font-size: 10px; font-weight: 900; }
+.role-manager { background: linear-gradient(135deg,#7c3aed,#6d28d9); color: #fff; }
+.role-employee { background: linear-gradient(135deg,#0891b2,#0e7490); color: #fff; }
+.cloud-status { position: fixed; top: 70px; left: 20px; z-index: 90; padding: 6px 12px; border-radius: 99px; font-size: 11px; font-weight: 900; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+.cloud-online { background: #10b981; color: #fff; }
+.cloud-offline { background: #ef4444; color: #fff; }
+.cloud-syncing { background: #f59e0b; color: #fff; }
 </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased">
 
 <div id="toastContainer" class="fixed top-5 left-5 z-[100] flex flex-col gap-2 pointer-events-none"></div>
-<div id="cloudStatus" class="cloud-status cloud-offline"><i class="fa-solid fa-cloud"></i> <span>غير متصل</span></div>
+<div id="cloudStatus" class="cloud-status cloud-syncing"><i class="fa-solid fa-cloud"></i> <span>جاري الاتصال...</span></div>
 
 <!-- LOGIN -->
 <div id="loginScreen" class="fixed inset-0 z-50 bg-gradient-to-br from-blue-50 via-white to-blue-100 hidden items-center justify-center p-4">
     <div class="bg-white border border-blue-200 w-full max-w-md shadow-2xl overflow-hidden rounded-lg">
         <div class="flex">
-            <button type="button" id="tabAdminLogin" onclick="setLoginType('admin')" class="flex-1 py-4 text-sm font-black uppercase tracking-wider bg-navy-dark text-white">بوابة الإدارة</button>
-            <button type="button" id="tabCustomerLogin" onclick="setLoginType('customer')" class="flex-1 py-4 text-sm font-black uppercase tracking-wider bg-gray-100 text-gray-500 hover:text-navy">بوابة العملاء</button>
+            <button type="button" id="tabAdminLogin" onclick="setLoginType('admin')" class="flex-1 py-4 text-sm font-black uppercase bg-navy-dark text-white">بوابة الإدارة</button>
+            <button type="button" id="tabCustomerLogin" onclick="setLoginType('customer')" class="flex-1 py-4 text-sm font-black uppercase bg-gray-100 text-gray-500 hover:text-navy">بوابة العملاء</button>
         </div>
         <div class="p-8">
             <div class="text-center mb-8">
@@ -108,10 +105,7 @@ tailwind.config = {
         <button id="toggleSidebar" onclick="toggleSidebar()" class="lg:hidden text-gray-500 hover:text-navy p-2"><i class="fa-solid fa-bars text-xl"></i></button>
         <div class="flex items-center gap-3">
             <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-navy-dark to-navy flex items-center justify-center"><i class="fa-solid fa-car-side text-white text-xl"></i></div>
-            <div>
-                <h1 class="font-black text-xl text-navy-dark uppercase">AUTO<span class="text-sky">CRM</span></h1>
-                <p class="text-[10px] text-gray-500 tracking-widest font-bold">LUXURY MOTORS</p>
-            </div>
+            <div><h1 class="font-black text-xl text-navy-dark uppercase">AUTO<span class="text-sky">CRM</span></h1><p class="text-[10px] text-gray-500 tracking-widest font-bold">FIREBASE EDITION</p></div>
         </div>
     </div>
     <div class="hidden md:flex items-center flex-1 max-w-md mx-8">
@@ -161,20 +155,15 @@ tailwind.config = {
                 <button onclick="switchTab('myactivity')" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-page rounded" data-tab="myactivity"><i class="fa-solid fa-clock-rotate-left w-5 text-center"></i><span>نشاطي</span></button>
             </div>
         </div>
-        <div class="p-4 border-t border-gray-200 text-center"><span class="text-[10px] text-gray-400 font-black uppercase">AutoCRM v5.1 Cloud</span></div>
+        <div class="p-4 border-t border-gray-200 text-center"><span class="text-[10px] text-gray-400 font-black uppercase">AutoCRM v6.0 Firebase</span></div>
     </aside>
 
     <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-page">
-
-        <!-- DASHBOARD -->
         <section id="tab-dashboard" class="tab-content space-y-6">
             <div class="panel p-4 flex flex-col md:flex-row justify-between items-center gap-4 border-t-4 border-t-navy-dark">
                 <div class="flex items-center gap-3">
                     <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center"><i class="fa-solid fa-user-tie text-navy text-xl"></i></div>
-                    <div>
-                        <div class="text-xs font-black text-ink-muted uppercase">مرحباً بك</div>
-                        <div id="dashWelcomeName" class="text-lg font-black text-navy-dark">-</div>
-                    </div>
+                    <div><div class="text-xs font-black text-ink-muted uppercase">مرحباً بك</div><div id="dashWelcomeName" class="text-lg font-black text-navy-dark">-</div></div>
                 </div>
                 <button onclick="openCustomerModal()" class="btn-primary text-base px-6 py-3 flex items-center gap-3 rounded w-full md:w-auto justify-center"><i class="fa-solid fa-plus"></i> إضافة عميل جديد</button>
             </div>
@@ -199,7 +188,6 @@ tailwind.config = {
             </div>
         </section>
 
-        <!-- SEARCH -->
         <section id="tab-search" class="tab-content hidden space-y-5">
             <div class="panel p-5 border-r-4 border-r-navy-dark">
                 <h2 class="text-xl font-black mb-5 text-navy-dark">البحث الشامل</h2>
@@ -211,13 +199,11 @@ tailwind.config = {
             <div id="searchResultsArea"></div>
         </section>
 
-        <!-- TASKS -->
         <section id="tab-tasks" class="tab-content hidden space-y-5">
             <h2 class="text-xl font-black text-navy-dark border-b border-gray-200 pb-3">المهام والمتابعات</h2>
             <div class="panel p-5"><div class="space-y-3" id="fullTasksContainer"></div></div>
         </section>
 
-        <!-- ANALYTICS -->
         <section id="tab-analytics" class="tab-content hidden space-y-5">
             <div class="flex justify-between items-center border-b border-gray-200 pb-3">
                 <h2 class="text-xl font-black text-navy-dark">التقارير</h2>
@@ -230,7 +216,6 @@ tailwind.config = {
             </div>
         </section>
 
-        <!-- EMPLOYEES -->
         <section id="tab-employees" class="tab-content hidden space-y-5">
             <div class="flex justify-between items-center border-b border-gray-200 pb-3">
                 <h2 class="text-xl font-black text-navy-dark"><i class="fa-solid fa-user-tie text-navy ml-2"></i>إدارة الموظفين</h2>
@@ -244,7 +229,6 @@ tailwind.config = {
             <div class="panel p-5"><div id="employeesListContainer" class="space-y-3"></div></div>
         </section>
 
-        <!-- ACTIVITY -->
         <section id="tab-activity" class="tab-content hidden space-y-5">
             <div class="flex flex-wrap justify-between items-center gap-3 border-b border-gray-200 pb-3">
                 <h2 class="text-xl font-black text-navy-dark">سجل النشاط</h2>
@@ -262,7 +246,6 @@ tailwind.config = {
             <div class="panel p-5 max-h-[70vh] overflow-y-auto" id="activityLogContainer"></div>
         </section>
 
-        <!-- MY ACTIVITY -->
         <section id="tab-myactivity" class="tab-content hidden space-y-5">
             <h2 class="text-xl font-black text-navy-dark border-b border-gray-200 pb-3">نشاطي الشخصي</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -273,7 +256,6 @@ tailwind.config = {
             <div class="panel p-5 max-h-[60vh] overflow-y-auto" id="myActivityContainer"></div>
         </section>
 
-        <!-- SETTINGS -->
         <section id="tab-settings" class="tab-content hidden space-y-5">
             <h2 class="text-xl font-black text-navy-dark border-b border-gray-200 pb-3">الإعدادات</h2>
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
@@ -288,7 +270,7 @@ tailwind.config = {
     </main>
 </div>
 
-<!-- MODALS -->
+<!-- EMPLOYEE MODAL -->
 <div id="employeeModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
     <div class="bg-white w-full max-w-lg shadow-2xl rounded-lg modal-anim">
         <div class="p-4 flex justify-between items-center bg-gradient-to-l from-navy-dark to-navy rounded-t-lg">
@@ -309,6 +291,7 @@ tailwind.config = {
     </div>
 </div>
 
+<!-- CUSTOMER MODAL -->
 <div id="customerModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white w-full max-w-4xl shadow-2xl my-auto rounded-lg modal-anim">
         <div class="p-5 flex items-center justify-between bg-gradient-to-l from-navy-dark to-navy rounded-t-lg">
@@ -359,6 +342,7 @@ tailwind.config = {
     </div>
 </div>
 
+<!-- FOLLOWUP MODAL -->
 <div id="followupModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
     <div class="bg-white w-full max-w-lg shadow-2xl rounded-lg modal-anim">
         <div class="p-4 flex justify-between items-center bg-gradient-to-l from-navy-dark to-navy rounded-t-lg">
@@ -379,6 +363,7 @@ tailwind.config = {
     </div>
 </div>
 
+<!-- PRODUCT MODAL -->
 <div id="productModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
     <div class="bg-white w-full max-w-2xl shadow-2xl rounded-lg modal-anim">
         <div class="p-4 flex justify-between items-center bg-gradient-to-l from-navy-dark to-navy rounded-t-lg">
@@ -406,6 +391,7 @@ tailwind.config = {
     </div>
 </div>
 
+<!-- CUSTOMER DETAIL MODAL -->
 <div id="customerDetailModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4 overflow-y-auto">
     <div class="bg-white w-full max-w-5xl shadow-2xl my-auto rounded-lg modal-anim">
         <div class="p-5 flex justify-between items-center bg-gradient-to-l from-navy-dark to-navy rounded-t-lg">
@@ -416,6 +402,7 @@ tailwind.config = {
     </div>
 </div>
 
+<!-- CUSTOMER PORTAL -->
 <div id="customerPortalScreen" class="fixed inset-0 z-40 bg-page hidden flex-col overflow-y-auto">
     <header class="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div class="flex items-center gap-3">
@@ -443,15 +430,35 @@ tailwind.config = {
     </main>
 </div>
 
-<script>
-// ==================== ⚙️ إعدادات السحابة (JSONBin) ====================
-const CLOUD_CONFIG = {
-    BIN_ID: '6ab1ce55ac6210605ae7a61b',
-    API_KEY: '$2a$10$lrrPdyvvw74FycNXlG/au.svPYRsRe88dflJeYUcQHuu8l8uHEbtG',
-    BASE_URL: 'https://api.jsonbin.io/v3/b'
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+const firebaseConfig = {
+    apiKey: "AIzaSyB5ehLE8FpBRo1dk32A9a9yDvGh-k9HB7Y",
+    authDomain: "autocrm-30dfe.firebaseapp.com",
+    projectId: "autocrm-30dfe",
+    storageBucket: "autocrm-30dfe.firebasestorage.app",
+    messagingSenderId: "810896938436",
+    appId: "1:810896938436:web:2da1ae985feb9b8c124091",
+    measurementId: "G-9GQFQDHT1J"
 };
 
-// ==================== DATA ====================
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+const MAIN_DOC = doc(db, 'autocrm', 'main');
+
+window.firebaseReady = true;
+window.fbDoc = MAIN_DOC;
+window.getDocFn = getDoc;
+window.setDocFn = setDoc;
+window.onSnapshotFn = onSnapshot;
+window.dispatchEvent(new Event('firebase-loaded'));
+</script>
+
+<script>
+// ==================== STATE ====================
 const DEFAULT_USERS = [
     { id: 'u1', username: 'AhmedMH', password: '200900', name: 'أحمد محمود', role: 'manager', phone: '', createdAt: Date.now() }
 ];
@@ -474,8 +481,9 @@ let currentLoginType = 'admin';
 let currentDetailCustomerId = null;
 let cloudEnabled = false;
 let isSyncing = false;
+let dbRef = null;
 
-// ==================== CLOUD SYNC ====================
+// ==================== CLOUD ====================
 function setCloudStatus(status, text) {
     const el = document.getElementById('cloudStatus');
     if (!el) return;
@@ -484,79 +492,89 @@ function setCloudStatus(status, text) {
     el.innerHTML = `<i class="fa-solid ${ic}"></i> <span>${text}</span>`;
 }
 
-async function loadFromCloud() {
+window.addEventListener('firebase-loaded', () => {
+    dbRef = window.fbDoc;
+    startRealtimeSync();
+});
+
+async function startRealtimeSync() {
+    if (!dbRef) return;
+    setCloudStatus('syncing', 'جاري الاتصال...');
     try {
-        setCloudStatus('syncing', 'جاري التحميل...');
-        const res = await fetch(`${CLOUD_CONFIG.BASE_URL}/${CLOUD_CONFIG.BIN_ID}/latest`, {
-            headers: { 'X-Master-Key': CLOUD_CONFIG.API_KEY }
-        });
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        const json = await res.json();
-        const rec = json.record || {};
-        // لو الـ bin فاضي أو بدأ ب empty
-        if (rec.empty === true) {
-            cloudEnabled = true;
-            setCloudStatus('online', 'متصل بالسحابة');
-            loadFromLocal();
-            return true;
+        const snap = await window.getDocFn(dbRef);
+        if (snap.exists()) {
+            const d = snap.data();
+            if (d.appData) appData = { ...appData, ...d.appData };
+            if (d.users && Array.isArray(d.users) && d.users.length) usersDb = d.users;
+            // دمج البيانات الأساسية
+            if (d.appData && d.appData.config) appData.config = { ...appData.config, ...d.appData.config };
+        } else {
+            // أول مرة — احفظ البيانات الأساسية
+            await saveToCloud();
         }
-        if (rec.appData) appData = { ...appData, ...rec.appData };
-        if (rec.users && Array.isArray(rec.users) && rec.users.length) usersDb = rec.users;
         cloudEnabled = true;
         setCloudStatus('online', 'متصل بالسحابة');
-        return true;
+        saveToLocal();
     } catch (e) {
-        console.error('Cloud load error:', e);
+        console.error('Init error:', e);
         cloudEnabled = false;
         setCloudStatus('offline', 'وضع محلي');
         loadFromLocal();
-        return false;
     }
+
+    // استمع للتحديثات الفورية
+    window.onSnapshotFn(dbRef, (snap) => {
+        if (!snap.exists()) return;
+        const d = snap.data();
+        const isLocalChange = isSyncing;
+        if (!isLocalChange) {
+            if (d.appData) appData = { ...appData, ...d.appData };
+            if (d.users && Array.isArray(d.users) && d.users.length) usersDb = d.users;
+            saveToLocal();
+            if (currentUser && currentUser.roleType === 'admin') {
+                updateDashboard(); renderDashboardTasks(); renderFullTasks();
+                if (document.getElementById('tab-employees').classList.contains('block')) renderEmployeesList();
+                if (document.getElementById('tab-settings').classList.contains('block')) renderSettingsLists();
+            }
+        }
+    });
+
+    populateDropdowns();
+    renderSettingsLists();
+    checkLoginState();
 }
 
-let cloudSaveTimer = null;
 async function saveToCloud() {
     saveToLocal();
-    if (!cloudEnabled) return;
-    clearTimeout(cloudSaveTimer);
-    cloudSaveTimer = setTimeout(async () => {
-        if (isSyncing) return;
-        isSyncing = true;
-        try {
-            setCloudStatus('syncing', 'جاري الحفظ...');
-            const payload = { appData, users: usersDb, updatedAt: Date.now() };
-            const res = await fetch(`${CLOUD_CONFIG.BASE_URL}/${CLOUD_CONFIG.BIN_ID}`, {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json', 'X-Master-Key': CLOUD_CONFIG.API_KEY },
-                body: JSON.stringify(payload)
-            });
-            if (!res.ok) throw new Error('Save HTTP ' + res.status);
-            setCloudStatus('online', 'متصل بالسحابة');
-        } catch (e) {
-            console.error('Cloud save error:', e);
-            setCloudStatus('offline', 'خطأ في الحفظ');
-        }
-        isSyncing = false;
-    }, 400);
+    if (!dbRef) return;
+    isSyncing = true;
+    try {
+        setCloudStatus('syncing', 'جاري الحفظ...');
+        await window.setDocFn(dbRef, { appData, users: usersDb, updatedAt: Date.now() });
+        setCloudStatus('online', 'متصل بالسحابة');
+    } catch (e) {
+        console.error('Save error:', e);
+        setCloudStatus('offline', 'خطأ في الحفظ');
+    }
+    setTimeout(() => { isSyncing = false; }, 500);
 }
 
 function saveToLocal() {
     try {
-        localStorage.setItem('autoCrmDataV5', JSON.stringify(appData));
-        localStorage.setItem('autoCrmUsersV5', JSON.stringify(usersDb));
+        localStorage.setItem('autoCrmDataV6', JSON.stringify(appData));
+        localStorage.setItem('autoCrmUsersV6', JSON.stringify(usersDb));
     } catch (e) {}
 }
 function loadFromLocal() {
-    const d = localStorage.getItem('autoCrmDataV5');
-    const u = localStorage.getItem('autoCrmUsersV5');
+    const d = localStorage.getItem('autoCrmDataV6');
+    const u = localStorage.getItem('autoCrmUsersV6');
     if (d) { try { appData = { ...appData, ...JSON.parse(d) }; } catch(e){} }
-    if (u) { try { const parsed = JSON.parse(u); if (Array.isArray(parsed) && parsed.length) usersDb = parsed; } catch(e){} }
+    if (u) { try { const p = JSON.parse(u); if (Array.isArray(p) && p.length) usersDb = p; } catch(e){} }
 }
 
 function saveData() { saveToCloud(); }
 function saveUsers() { saveToCloud(); }
 
-// ==================== ACTIVITY LOG ====================
 function logActivity(type, details) {
     if (!appData.activityLog) appData.activityLog = [];
     appData.activityLog.unshift({
@@ -574,11 +592,17 @@ function isManager() { return currentUser && currentUser.role === 'manager'; }
 let statusChartInstance, govChartInstance, vehicleChartInstance;
 
 // ==================== INIT ====================
-window.onload = async () => {
-    await loadFromCloud();
+window.onload = () => {
+    loadFromLocal();
     populateDropdowns();
     renderSettingsLists();
-    checkLoginState();
+    // لو Firebase مجهّز بعد 3 ثواني ومش اشتغل، اشتغل محلي
+    setTimeout(() => {
+        if (!cloudEnabled && !currentUser) {
+            setCloudStatus('offline', 'وضع محلي');
+            checkLoginState();
+        }
+    }, 3000);
 };
 
 // ==================== LOGIN ====================
@@ -601,7 +625,7 @@ function setLoginType(type) {
 }
 
 function checkLoginState() {
-    const s = sessionStorage.getItem('autoCrmUserV5');
+    const s = sessionStorage.getItem('autoCrmUserV6');
     if (s) {
         const sessionUser = JSON.parse(s);
         if (sessionUser.roleType === 'customer') { currentUser = sessionUser; showCustomerPortal(); }
@@ -621,7 +645,7 @@ function handleLogin(e) {
         const user = usersDb.find(x => x.username === u && x.password === p);
         if (user) {
             currentUser = { ...user, roleType: 'admin' };
-            sessionStorage.setItem('autoCrmUserV5', JSON.stringify(currentUser));
+            sessionStorage.setItem('autoCrmUserV6', JSON.stringify(currentUser));
             logActivity('login', `دخول ${user.role === 'manager' ? 'المدير' : 'الموظف'} ${user.name}`);
             showApp(); showToast(`مرحباً، ${user.name}`);
         } else showToast('بيانات غير صحيحة!', 'error');
@@ -629,7 +653,7 @@ function handleLogin(e) {
         const cust = appData.customers.find(c => (c.phone === u || c.altPhone === u) && c.password === p);
         if (cust) {
             currentUser = { ...cust, roleType: 'customer' };
-            sessionStorage.setItem('autoCrmUserV5', JSON.stringify(currentUser));
+            sessionStorage.setItem('autoCrmUserV6', JSON.stringify(currentUser));
             showCustomerPortal(); showToast(`مرحباً، ${cust.name}`);
         } else showToast('خطأ في البيانات!', 'error');
     }
@@ -637,7 +661,7 @@ function handleLogin(e) {
 
 function handleLogout() {
     if (currentUser && currentUser.roleType === 'admin') logActivity('logout', `خروج ${currentUser.name}`);
-    sessionStorage.removeItem('autoCrmUserV5');
+    sessionStorage.removeItem('autoCrmUserV6');
     currentUser = null;
     document.getElementById('loginForm').reset();
     switchTab('dashboard');
@@ -888,7 +912,6 @@ function activityItem(a, hideName = false) {
         </div>`;
 }
 
-// ==================== EXPORT ====================
 function exportData() {
     const backup = { appData, usersDb, exportedAt: new Date().toISOString() };
     const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
