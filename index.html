@@ -20,6 +20,7 @@ tailwind.config = {
 </script>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
 * { font-family: 'Cairo', sans-serif; }
@@ -58,6 +59,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
 .cloud-online { background: #10b981; color: #fff; }
 .cloud-offline { background: #ef4444; color: #fff; }
 .cloud-syncing { background: #f59e0b; color: #fff; }
+.task-clickable { cursor: pointer; transition: all 0.15s; }
+.task-clickable:hover { background: #f1f5f9 !important; transform: translateX(-2px); }
 </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased">
@@ -87,7 +90,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
                     </div>
                 </div>
                 <div>
-                    <label class="block text-xs font-black text-ink-muted mb-2 uppercase">كلمة المرور</label>
+                    <label id="loginPassLabel" class="block text-xs font-black text-ink-muted mb-2 uppercase">كلمة المرور</label>
                     <div class="relative">
                         <i class="fa-solid fa-lock absolute right-4 top-3.5 text-gray-400"></i>
                         <input type="password" id="loginPass" required class="w-full pl-4 pr-11 py-3 bg-page border border-gray-300 text-sm rounded" placeholder="***">
@@ -148,7 +151,9 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
                 <button onclick="switchTab('employees')" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-page rounded" data-tab="employees"><i class="fa-solid fa-user-tie w-5 text-center"></i><span>إدارة الموظفين</span></button>
                 <button onclick="switchTab('activity')" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-page rounded" data-tab="activity"><i class="fa-solid fa-clock-rotate-left w-5 text-center"></i><span>سجل النشاط</span></button>
                 <button onclick="switchTab('settings')" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-page rounded" data-tab="settings"><i class="fa-solid fa-sliders w-5 text-center"></i><span>الإعدادات</span></button>
-                <button onclick="exportData()" class="w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-green-700 hover:bg-green-50 rounded"><i class="fa-solid fa-download w-5 text-center"></i><span>تصدير نسخة احتياطية</span></button>
+                <button onclick="downloadExcelTemplate()" class="w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-sky hover:bg-blue-50 rounded"><i class="fa-solid fa-file-excel w-5 text-center"></i><span>تحميل قالب Excel</span></button>
+                <button onclick="document.getElementById('excelImportInput').click()" class="w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-green-700 hover:bg-green-50 rounded"><i class="fa-solid fa-file-import w-5 text-center"></i><span>استيراد عملاء من Excel</span></button>
+                <button onclick="exportData()" class="w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded"><i class="fa-solid fa-download w-5 text-center"></i><span>تصدير نسخة احتياطية</span></button>
             </div>
             <div id="employeeSection" class="hidden">
                 <div class="text-[10px] font-black text-gray-400 px-2 uppercase tracking-widest pt-6 mb-4">حسابي</div>
@@ -159,6 +164,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
     </aside>
 
     <main class="flex-1 overflow-y-auto p-4 md:p-8 bg-page">
+        <input type="file" id="excelImportInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelImport(event)">
+
         <section id="tab-dashboard" class="tab-content space-y-6">
             <div class="panel p-4 flex flex-col md:flex-row justify-between items-center gap-4 border-t-4 border-t-navy-dark">
                 <div class="flex items-center gap-3">
@@ -181,20 +188,22 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
                 <div class="panel p-5">
                     <h3 class="font-black text-base text-navy-dark mb-2"><i class="fa-solid fa-bolt text-sky ml-2"></i>استعلام سريع</h3>
                     <div class="space-y-3 mt-4">
-                        <input type="text" id="dashPhoneInput" placeholder="رقم / اسم..." onkeydown="if(event.key==='Enter'){event.preventDefault();searchCustomerFromDash();}" class="w-full px-4 py-3 bg-page border border-gray-300 text-sm rounded">
+                        <input type="text" id="dashPhoneInput" placeholder="رقم / اسم / كود..." onkeydown="if(event.key==='Enter'){event.preventDefault();searchCustomerFromDash();}" class="w-full px-4 py-3 bg-page border border-gray-300 text-sm rounded">
                         <button onclick="searchCustomerFromDash()" class="btn-primary w-full py-3 text-sm rounded">بحث</button>
                     </div>
                 </div>
             </div>
         </section>
 
+        <!-- SEARCH TAB (REDESIGNED) -->
         <section id="tab-search" class="tab-content hidden space-y-5">
             <div class="panel p-5 border-r-4 border-r-navy-dark">
-                <h2 class="text-xl font-black mb-5 text-navy-dark">البحث الشامل</h2>
+                <h2 class="text-xl font-black mb-5 text-navy-dark">سجل العملاء</h2>
                 <div class="flex flex-col sm:flex-row gap-3">
-                    <input type="text" id="mainSearchPhone" placeholder="بحث برقم/اسم/رقم قومي..." onkeydown="if(event.key==='Enter'){event.preventDefault();executeCustomerSearch();}" class="flex-1 px-4 py-3 bg-page border border-gray-300 text-sm rounded">
-                    <button onclick="executeCustomerSearch()" class="btn-primary px-8 py-3 text-sm rounded">بحث</button>
+                    <input type="text" id="mainSearchPhone" placeholder="بحث بالاسم / رقم الهاتف / الكود / الرقم القومي..." onkeydown="if(event.key==='Enter'){event.preventDefault();executeCustomerSearch();}" class="flex-1 px-4 py-3 bg-page border border-gray-300 text-sm rounded">
+                    <button onclick="executeCustomerSearch()" class="btn-primary px-8 py-3 text-sm rounded"><i class="fa-solid fa-magnifying-glass ml-1"></i> بحث</button>
                 </div>
+                <button onclick="openCustomerModal()" class="btn-primary w-full mt-3 py-3 text-sm rounded flex items-center justify-center gap-2"><i class="fa-solid fa-user-plus"></i> إضافة عميل جديد</button>
             </div>
             <div id="searchResultsArea"></div>
         </section>
@@ -317,7 +326,14 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
                     <div><label class="block text-xs font-black text-ink-muted mb-1.5">المحافظة *</label><select id="custGovSelect" required class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"><option value="">اختر...</option></select></div>
                     <div><label class="block text-xs font-black text-ink-muted mb-1.5">المركز / الحي *</label><input type="text" id="custDistrict" required placeholder="مدينة نصر" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></div>
                     <div><label class="block text-xs font-black text-ink-muted mb-1.5">العنوان التفصيلي</label><input type="text" id="custAddress" placeholder="اسم الشارع" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></div>
-                    <div><label class="block text-xs font-black text-sky mb-1.5">🔒 كلمة المرور للبوابة *</label><input type="text" id="custPassword" required placeholder="للعميل" class="w-full px-3 py-2.5 bg-blue-50 border border-sky text-sm rounded"></div>
+                    <div class="md:col-span-3">
+                        <label class="block text-xs font-black text-sky mb-1.5">🔑 كود العميل (للبوابة) *</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="custPassword" required readonly placeholder="سيتم توليده تلقائياً" class="flex-1 px-3 py-2.5 bg-blue-50 border border-sky text-sm rounded font-black tracking-widest text-navy-dark">
+                            <button type="button" onclick="document.getElementById('custPassword').value=generateCustomerCode();" class="btn-secondary px-4 rounded text-xs" title="توليد جديد"><i class="fa-solid fa-rotate"></i></button>
+                        </div>
+                        <div class="text-[10px] text-gray-500 font-bold mt-1">يتولد تلقائياً (3 حروف + 3 أرقام) ويستخدمه العميل للدخول للبوابة</div>
+                    </div>
                 </div>
             </div>
 
@@ -335,14 +351,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
                         </select>
                     </div>
                     <div class="md:col-span-3"><label class="block text-xs font-black text-ink-muted mb-1.5">ملاحظات عامة</label><textarea id="custNotes" rows="2" placeholder="ملخص الاتصال..." class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></textarea></div>
-                </div>
-            </div>
-
-            <div class="bg-blue-50 p-4 rounded border border-blue-200">
-                <h4 class="text-xs font-black text-navy-dark uppercase border-b border-blue-200 pb-2 mb-4">🔧 رقم الشاسيه والموتور (إن وجد)</h4>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">رقم الشاسيه</label><input type="text" id="custChassis" placeholder="VIN" class="w-full px-3 py-2.5 bg-white border border-gray-300 text-sm rounded"></div>
-                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">رقم الموتور</label><input type="text" id="custMotor" class="w-full px-3 py-2.5 bg-white border border-gray-300 text-sm rounded"></div>
                 </div>
             </div>
 
@@ -376,8 +384,8 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
     </div>
 </div>
 
-<!-- FOLLOWUP MODAL -->
-<div id="followupModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
+<!-- FOLLOWUP MODAL (z-60 to appear over customer detail) -->
+<div id="followupModal" class="fixed inset-0 z-[60] modal-backdrop hidden items-center justify-center p-4">
     <div class="bg-white w-full max-w-lg shadow-2xl rounded-lg modal-anim">
         <div class="p-4 flex justify-between items-center bg-gradient-to-l from-navy-dark to-navy rounded-t-lg">
             <h3 class="font-black text-white">إضافة متابعة</h3>
@@ -397,9 +405,9 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
     </div>
 </div>
 
-<!-- PRODUCT MODAL -->
-<div id="productModal" class="fixed inset-0 z-50 modal-backdrop hidden items-center justify-center p-4">
-    <div class="bg-white w-full max-w-2xl shadow-2xl rounded-lg modal-anim">
+<!-- PRODUCT MODAL (z-60) -->
+<div id="productModal" class="fixed inset-0 z-[60] modal-backdrop hidden items-center justify-center p-4">
+    <div class="bg-white w-full max-w-3xl shadow-2xl rounded-lg modal-anim">
         <div class="p-4 flex justify-between items-center bg-gradient-to-l from-navy-dark to-navy rounded-t-lg">
             <h3 class="font-black text-white"><span id="prodModalTitle">إضافة منتج</span></h3>
             <button onclick="closeProductModal()" class="text-white/80 text-xl"><i class="fa-solid fa-xmark"></i></button>
@@ -415,9 +423,19 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
                 <div><label class="block text-xs font-black text-ink-muted mb-1.5">الإجمالي</label><input type="number" id="prodTotal" value="0" oninput="calcProdDebt()" class="w-full px-3 py-2.5 bg-page border border-gray-300 font-black text-sm rounded"></div>
                 <div><label class="block text-xs font-black text-ink-muted mb-1.5">المقدم</label><input type="number" id="prodDown" value="0" oninput="calcProdDebt()" class="w-full px-3 py-2.5 bg-page border border-gray-300 font-black text-sm rounded"></div>
                 <div><label class="block text-xs font-black text-ink-muted mb-1.5">القسط الشهري</label><input type="number" id="prodMonthly" value="0" class="w-full px-3 py-2.5 bg-page border border-gray-300 font-black text-sm rounded"></div>
-                <div><label class="block text-xs font-black text-ink-muted mb-1.5">تاريخ التسليم</label><input type="date" id="prodDeliveryDate" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></div>
+                <div><label class="block text-xs font-black text-ink-muted mb-1.5">تاريخ التسليم / البيع</label><input type="date" id="prodDeliveryDate" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></div>
                 <div><label class="block text-xs font-black text-amber-700 mb-1.5">المديونية</label><input type="text" id="prodDebt" readonly class="w-full px-3 py-2.5 bg-amber-50 border border-amber-300 font-black text-sm rounded"></div>
             </div>
+
+            <div class="bg-blue-50 p-4 rounded border border-blue-200 space-y-3">
+                <h4 class="text-xs font-black text-navy-dark uppercase border-b border-blue-200 pb-2">🔧 بيانات المركبة الخاصة بالمنتج</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">رقم الشاسيه</label><input type="text" id="prodChassis" placeholder="VIN" class="w-full px-3 py-2.5 bg-white border border-gray-300 text-sm rounded"></div>
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">رقم الموتور</label><input type="text" id="prodMotor" class="w-full px-3 py-2.5 bg-white border border-gray-300 text-sm rounded"></div>
+                    <div><label class="block text-xs font-black text-ink-muted mb-1.5">الموديل (سنة الصنع)</label><input type="text" id="prodModel" placeholder="2025 / 2026" class="w-full px-3 py-2.5 bg-white border border-gray-300 text-sm rounded"></div>
+                </div>
+            </div>
+
             <div><label class="block text-xs font-black text-ink-muted mb-1.5">ملاحظات</label><textarea id="prodNotes" rows="2" class="w-full px-3 py-2.5 bg-page border border-gray-300 text-sm rounded"></textarea></div>
             <div class="flex justify-end gap-3 pt-3 border-t border-gray-200">
                 <button type="button" onclick="closeProductModal()" class="btn-secondary px-6 py-2.5 text-sm rounded">إلغاء</button>
@@ -511,6 +529,19 @@ let cloudEnabled = false;
 let isSyncing = false;
 let activeDocRef = null;
 
+// ==================== CUSTOMER CODE GENERATOR ====================
+function generateCustomerCode() {
+    const L = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+    const D = '0123456789';
+    let code;
+    do {
+        code = '';
+        for (let i = 0; i < 3; i++) code += L[Math.floor(Math.random() * L.length)];
+        for (let i = 0; i < 3; i++) code += D[Math.floor(Math.random() * D.length)];
+    } while (appData.customers.some(c => c.password === code));
+    return code;
+}
+
 // ==================== CLOUD STATUS ====================
 function setCloudStatus(status, text) {
     const el = document.getElementById('cloudStatus');
@@ -520,13 +551,12 @@ function setCloudStatus(status, text) {
     el.innerHTML = `<i class="fa-solid ${ic}"></i> <span>${text}</span>`;
 }
 
-// ==================== DETECT FIRESTORE PATH ====================
 async function detectAndConnect() {
     console.log('🔍 Looking for existing data...');
     setCloudStatus('syncing', 'جاري البحث...');
 
     const paths = [
-        ['main', 'main'],       // ← الأكثر احتمالاً (شفناه في Console)
+        ['main', 'main'],
         ['autocrm', 'main'],
         ['crm', 'main'],
         ['data', 'main'],
@@ -546,8 +576,6 @@ async function detectAndConnect() {
                 foundData = snap.data();
                 console.log(`   ✅ FOUND at: ${coll}/${docId}`);
                 break;
-            } else {
-                console.log(`   ⚠️ Empty: ${coll}/${docId}`);
             }
         } catch(e) {
             console.log(`   ❌ Error at ${coll}/${docId}:`, e.message);
@@ -582,7 +610,6 @@ async function detectAndConnect() {
     setCloudStatus('online', 'متصل بالسحابة');
     saveToLocal();
 
-    // Real-time listener
     activeDocRef.onSnapshot(snap => {
         if (!snap.exists) return;
         if (isSyncing) return;
@@ -667,7 +694,6 @@ window.addEventListener('load', async () => {
         cloudEnabled = false;
     }
 
-    // Timeout fallback
     setTimeout(() => {
         if (!cloudEnabled && !currentUser) {
             setCloudStatus('offline', 'وضع محلي');
@@ -675,7 +701,6 @@ window.addEventListener('load', async () => {
         }
     }, 8000);
 
-    // If already loaded fast
     if (cloudEnabled) checkLoginState();
 });
 
@@ -685,16 +710,19 @@ function setLoginType(type) {
     const tabA = document.getElementById('tabAdminLogin'), tabC = document.getElementById('tabCustomerLogin');
     const lbl = document.getElementById('loginUserLabel'), icon = document.getElementById('loginUserIcon');
     const inp = document.getElementById('loginUser'), sub = document.getElementById('loginSubtitle'), btn = document.getElementById('loginBtnText');
+    const passLbl = document.getElementById('loginPassLabel');
     if (type === 'admin') {
         tabA.className = 'flex-1 py-4 text-sm font-black uppercase bg-navy-dark text-white';
         tabC.className = 'flex-1 py-4 text-sm font-black uppercase bg-gray-100 text-gray-500 hover:text-navy';
         lbl.innerText = 'اسم المستخدم'; icon.className = 'fa-solid fa-user absolute right-4 top-3.5 text-gray-400';
         inp.placeholder = 'اسم المستخدم'; sub.innerText = 'تسجيل دخول الموظفين'; btn.innerText = 'دخول';
+        passLbl.innerText = 'كلمة المرور';
     } else {
         tabC.className = 'flex-1 py-4 text-sm font-black uppercase bg-navy-dark text-white';
         tabA.className = 'flex-1 py-4 text-sm font-black uppercase bg-gray-100 text-gray-500 hover:text-navy';
         lbl.innerText = 'رقم الهاتف'; icon.className = 'fa-solid fa-phone absolute right-4 top-3.5 text-gray-400';
         inp.placeholder = '01xxxxxxxxx'; sub.innerText = 'بوابة متابعة العملاء'; btn.innerText = 'دخول لحسابي';
+        passLbl.innerText = 'كود العميل';
     }
 }
 
@@ -724,7 +752,9 @@ function handleLogin(e) {
             showApp(); showToast(`مرحباً، ${user.name}`);
         } else showToast('بيانات غير صحيحة!', 'error');
     } else {
-        const cust = appData.customers.find(c => (c.phone === u || c.altPhone === u) && c.password === p);
+        const cust = appData.customers.find(c =>
+            (c.phone === u || c.altPhone === u || c.password === u) && (c.password === p)
+        );
         if (cust) {
             currentUser = { ...cust, roleType: 'customer' };
             sessionStorage.setItem('autoCrmUserV7', JSON.stringify(currentUser));
@@ -806,6 +836,10 @@ function switchTab(tabId) {
     if (active) active.classList.add('active-nav');
     closeSidebarOnMobile();
     if (tabId === 'dashboard') { updateDashboard(); renderDashboardTasks(); }
+    if (tabId === 'search') {
+        // Show all customers by default
+        executeCustomerSearch();
+    }
     if (tabId === 'tasks') renderFullTasks();
     if (tabId === 'analytics') initCharts();
     if (tabId === 'settings') renderSettingsLists();
@@ -966,7 +1000,8 @@ function activityItem(a, hideName = false) {
         'add_employee': { ic: 'fa-user-tie', cl: 'text-purple-600 bg-purple-100' },
         'edit_employee': { ic: 'fa-user-pen', cl: 'text-purple-600 bg-purple-100' },
         'delete_employee': { ic: 'fa-user-xmark', cl: 'text-red-600 bg-red-100' },
-        'settings': { ic: 'fa-gear', cl: 'text-gray-500 bg-gray-100' }
+        'settings': { ic: 'fa-gear', cl: 'text-gray-500 bg-gray-100' },
+        'import_customers': { ic: 'fa-file-import', cl: 'text-green-600 bg-green-100' }
     };
     const ic = iconMap[a.type] || { ic: 'fa-circle-info', cl: 'text-gray-500 bg-gray-100' };
     const user = usersDb.find(u => u.id === a.userId);
@@ -998,6 +1033,106 @@ function exportData() {
     showToast('تم تصدير النسخة');
 }
 
+// ==================== EXCEL IMPORT / EXPORT ====================
+const EXCEL_HEADERS = ['الاسم', 'الرقم القومي', 'المهنة', 'الهاتف', 'بديل', 'واتساب', 'المحافظة', 'المركز/الحي', 'العنوان', 'كود العميل', 'القناة', 'المركبة', 'الحالة', 'الإجمالي', 'المقدم', 'القسط الشهري', 'جهة التقسيط', 'الشاسيه', 'الموتور', 'الموديل', 'تاريخ التسليم', 'ملاحظات'];
+
+function downloadExcelTemplate() {
+    if (!isManager()) return showToast('للمدير فقط', 'error');
+    const ws = XLSX.utils.aoa_to_sheet([EXCEL_HEADERS, ['أحمد محمد', '29501011234567', 'مهندس', '01012345678', '', '', 'القاهرة', 'مدينة نصر', 'شارع 9', 'ABC123', 'فيسبوك', 'تويوتا كورولا', 'مفتوحة', '750000', '150000', '8500', 'بنك مصر', 'VIN123456', 'ENG789', '2025', '2025-01-15', 'عميل مهتم']]);
+    ws['!cols'] = EXCEL_HEADERS.map(() => ({ wch: 18 }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'العملاء');
+    XLSX.writeFile(wb, 'autocrm-customers-template.xlsx');
+    showToast('تم تحميل القالب');
+}
+
+function handleExcelImport(event) {
+    if (!isManager()) { event.target.value = ''; return showToast('للمدير فقط', 'error'); }
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const wb = XLSX.read(data, { type: 'array' });
+            const sheet = wb.Sheets[wb.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+            if (!rows.length) { showToast('الملف فارغ!', 'error'); event.target.value = ''; return; }
+            if (!confirm(`سيتم استيراد ${rows.length} عميل. متابعة؟`)) { event.target.value = ''; return; }
+
+            let imported = 0;
+            rows.forEach(row => {
+                const name = String(row['الاسم'] || '').trim();
+                const phone = String(row['الهاتف'] || '').trim();
+                if (!name || !phone) return;
+
+                let code = String(row['كود العميل'] || '').trim();
+                if (!code || appData.customers.some(c => c.password === code)) code = generateCustomerCode();
+
+                const total = Number(row['الإجمالي']) || 0;
+                const down = Number(row['المقدم']) || 0;
+                const custId = 'c' + Date.now() + Math.random().toString(36).slice(2,5);
+                const prodId = 'p' + Date.now() + Math.random().toString(36).slice(2,5);
+
+                const firstProduct = {
+                    id: prodId,
+                    vehicle: String(row['المركبة'] || '').trim() || 'غير محدد',
+                    payMethod: String(row['جهة التقسيط'] || '').trim() ? 'تقسيط' : 'كاش',
+                    financeEntity: String(row['جهة التقسيط'] || '').trim(),
+                    stage: '',
+                    status: String(row['الحالة'] || 'مفتوحة').trim(),
+                    total, down,
+                    monthly: Number(row['القسط الشهري']) || 0,
+                    deliveryDate: String(row['تاريخ التسليم'] || '').trim(),
+                    chassis: String(row['الشاسيه'] || '').trim(),
+                    motor: String(row['الموتور'] || '').trim(),
+                    model: String(row['الموديل'] || '').trim(),
+                    debt: Math.max(0, total - down),
+                    notes: '',
+                    createdAt: Date.now(),
+                    createdBy: currentUser.id,
+                    createdByName: currentUser.name
+                };
+
+                appData.customers.push({
+                    id: custId,
+                    name,
+                    natId: String(row['الرقم القومي'] || '').trim(),
+                    job: String(row['المهنة'] || '').trim(),
+                    phone,
+                    altPhone: String(row['بديل'] || '').trim(),
+                    whatsapp: String(row['واتساب'] || '').trim(),
+                    gov: String(row['المحافظة'] || '').trim(),
+                    district: String(row['المركز/الحي'] || '').trim(),
+                    address: String(row['العنوان'] || '').trim(),
+                    password: code,
+                    channel: String(row['القناة'] || '').trim(),
+                    interest: String(row['المركبة'] || '').trim(),
+                    status: String(row['الحالة'] || 'مفتوحة').trim(),
+                    notes: String(row['ملاحظات'] || '').trim(),
+                    products: [firstProduct],
+                    followups: [],
+                    createdAt: Date.now() + imported,
+                    createdBy: currentUser.id,
+                    createdByName: currentUser.name
+                });
+                imported++;
+            });
+
+            logActivity('import_customers', `تم استيراد ${imported} عميل من Excel`);
+            saveData();
+            updateDashboard();
+            showToast(`تم استيراد ${imported} عميل بنجاح`);
+            if (document.getElementById('tab-search').classList.contains('block')) executeCustomerSearch();
+        } catch(err) {
+            console.error(err);
+            showToast('خطأ في قراءة الملف!', 'error');
+        }
+        event.target.value = '';
+    };
+    reader.readAsArrayBuffer(file);
+}
+
 // ==================== DROPDOWNS ====================
 function populateDropdowns() {
     const fill = (id, arr, ph) => {
@@ -1024,6 +1159,7 @@ function openCustomerModal(id) {
     document.getElementById('custModalTitle').innerText = 'تسجيل عميل جديد';
     document.getElementById('custDebt').value = '0';
     document.getElementById('financeSection').style.display = 'block';
+    document.getElementById('custPassword').value = generateCustomerCode();
     calcDebt();
 
     if (id) {
@@ -1042,13 +1178,11 @@ function openCustomerModal(id) {
         document.getElementById('custGovSelect').value = c.gov || '';
         document.getElementById('custDistrict').value = c.district || '';
         document.getElementById('custAddress').value = c.address || '';
-        document.getElementById('custPassword').value = c.password || '';
+        document.getElementById('custPassword').value = c.password || generateCustomerCode();
         document.getElementById('custChannelSelect').value = c.channel || '';
         document.getElementById('custInterest').value = c.interest || '';
         document.getElementById('custStatus').value = c.status || 'مفتوحة';
         document.getElementById('custNotes').value = c.notes || '';
-        document.getElementById('custChassis').value = c.chassis || '';
-        document.getElementById('custMotor').value = c.motor || '';
     }
 }
 function closeCustomerModal() { document.getElementById('customerModal').classList.add('hidden'); document.getElementById('customerModal').classList.remove('flex'); }
@@ -1072,13 +1206,11 @@ function saveCustomerData(e) {
         gov: document.getElementById('custGovSelect').value,
         district: document.getElementById('custDistrict').value.trim(),
         address: document.getElementById('custAddress').value.trim(),
-        password: document.getElementById('custPassword').value.trim(),
+        password: document.getElementById('custPassword').value.trim() || generateCustomerCode(),
         channel: document.getElementById('custChannelSelect').value,
         interest: document.getElementById('custInterest').value.trim(),
         status: document.getElementById('custStatus').value,
-        notes: document.getElementById('custNotes').value.trim(),
-        chassis: document.getElementById('custChassis').value.trim(),
-        motor: document.getElementById('custMotor').value.trim()
+        notes: document.getElementById('custNotes').value.trim()
     };
 
     if (id) {
@@ -1112,6 +1244,7 @@ function saveCustomerData(e) {
             total: t, down: d,
             monthly: Number(document.getElementById('custMonthly').value) || 0,
             deliveryDate: document.getElementById('custDeliveryDate').value || '',
+            chassis: '', motor: '', model: '',
             debt: Math.max(0, t - d),
             notes: '', createdAt: Date.now(),
             createdBy: currentUser.id, createdByName: currentUser.name
@@ -1125,7 +1258,7 @@ function saveCustomerData(e) {
             createdByName: currentUser.name
         });
         logActivity('add_customer', `إضافة: ${baseData.name}`);
-        showToast('تم التسجيل');
+        showToast('تم التسجيل - الكود: ' + baseData.password);
     }
     saveData(); closeCustomerModal(); updateDashboard(); renderFullTasks(); renderDashboardTasks();
     if (document.getElementById('tab-search').classList.contains('block')) executeCustomerSearch();
@@ -1143,7 +1276,8 @@ function openProductModal(custId, prodId) {
     toggleProdInstallment();
     if (prodId) {
         const c = appData.customers.find(x => x.id === custId);
-        const p = c.products.find(x => x.id === prodId);
+        if (!c) return;
+        const p = (c.products || []).find(x => x.id === prodId);
         if (p) {
             document.getElementById('prodModalTitle').innerText = 'تعديل المنتج';
             document.getElementById('prodId').value = p.id;
@@ -1156,6 +1290,9 @@ function openProductModal(custId, prodId) {
             document.getElementById('prodDown').value = p.down || 0;
             document.getElementById('prodMonthly').value = p.monthly || 0;
             document.getElementById('prodDeliveryDate').value = p.deliveryDate || '';
+            document.getElementById('prodChassis').value = p.chassis || '';
+            document.getElementById('prodMotor').value = p.motor || '';
+            document.getElementById('prodModel').value = p.model || '';
             document.getElementById('prodNotes').value = p.notes || '';
             toggleProdInstallment(); calcProdDebt();
         }
@@ -1190,6 +1327,9 @@ function saveProductData(e) {
         total: t, down: d,
         monthly: Number(document.getElementById('prodMonthly').value) || 0,
         deliveryDate: document.getElementById('prodDeliveryDate').value || '',
+        chassis: document.getElementById('prodChassis').value.trim(),
+        motor: document.getElementById('prodMotor').value.trim(),
+        model: document.getElementById('prodModel').value.trim(),
         debt: Math.max(0, t - d),
         notes: document.getElementById('prodNotes').value.trim(),
         createdAt: prodId ? (c.products.find(x => x.id === prodId)?.createdAt || Date.now()) : Date.now(),
@@ -1272,6 +1412,7 @@ function openCustomerDetail(custId) {
             <div class="md:col-span-2">
                 <h3 class="text-2xl font-black text-navy-dark mb-3">${c.name}</h3>
                 <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+                    <div><span class="text-xs text-ink-muted font-bold block">كود العميل</span><b class="text-navy tracking-widest">${c.password || '-'}</b></div>
                     <div><span class="text-xs text-ink-muted font-bold block">الهاتف</span><b>${c.phone || '-'}</b></div>
                     <div><span class="text-xs text-ink-muted font-bold block">بديل</span><b>${c.altPhone || '-'}</b></div>
                     <div><span class="text-xs text-ink-muted font-bold block">واتساب</span><b>${c.whatsapp || '-'}</b></div>
@@ -1283,8 +1424,6 @@ function openCustomerDetail(custId) {
                     <div><span class="text-xs text-ink-muted font-bold block">القناة</span><b>${c.channel || '-'}</b></div>
                     <div><span class="text-xs text-ink-muted font-bold block">المركبة المطلوبة</span><b>${c.interest || '-'}</b></div>
                     <div><span class="text-xs text-ink-muted font-bold block">حالة البيع</span>${statusBadge(c.status)}</div>
-                    <div><span class="text-xs text-ink-muted font-bold block">الشاسيه</span><b>${c.chassis || '-'}</b></div>
-                    <div><span class="text-xs text-ink-muted font-bold block">الموتور</span><b>${c.motor || '-'}</b></div>
                     ${c.notes ? `<div class="md:col-span-3"><span class="text-xs text-ink-muted font-bold block">ملاحظات</span><b class="text-gray-700">${c.notes}</b></div>` : ''}
                     ${c.createdByName ? `<div class="md:col-span-2"><span class="text-xs text-ink-muted font-bold block">أضيف بواسطة</span><b class="text-navy">${c.createdByName}</b></div>` : ''}
                 </div>
@@ -1309,13 +1448,13 @@ function openCustomerDetail(custId) {
     else html += c.products.map((p, i) => `
         <div class="bg-white border border-gray-200 rounded p-4">
             <div class="flex justify-between items-start mb-3">
-                <div class="flex items-center gap-2"><span class="badge badge-blue">منتج #${i + 1}</span><b class="text-navy-dark">${p.vehicle}</b>${statusBadge(p.status)}</div>
+                <div class="flex items-center gap-2 flex-wrap"><span class="badge badge-blue">منتج #${i + 1}</span><b class="text-navy-dark">${p.vehicle}</b>${statusBadge(p.status)}${p.model ? `<span class="badge badge-gray">موديل ${p.model}</span>` : ''}</div>
                 <div class="flex gap-2">
-                    <button onclick="openProductModal('${c.id}','${p.id}')" class="text-sky hover:text-navy text-sm"><i class="fa-solid fa-pen"></i></button>
-                    ${isManager() ? `<button onclick="deleteProduct('${c.id}','${p.id}')" class="text-red-400 hover:text-red-600 text-sm"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    <button onclick="openProductModal('${c.id}','${p.id}')" class="text-sky hover:text-navy text-sm p-1" title="تعديل المنتج"><i class="fa-solid fa-pen"></i></button>
+                    ${isManager() ? `<button onclick="deleteProduct('${c.id}','${p.id}')" class="text-red-400 hover:text-red-600 text-sm p-1" title="حذف"><i class="fa-solid fa-trash"></i></button>` : ''}
                 </div>
             </div>
-            <div class="grid grid-cols-2 md:grid-cols-6 gap-3 text-xs">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs mb-2">
                 <div><span class="text-ink-muted font-bold block">الدفع</span><b>${p.payMethod}</b></div>
                 <div><span class="text-ink-muted font-bold block">الجهة</span><b>${p.financeEntity || '-'}</b></div>
                 <div><span class="text-ink-muted font-bold block">المرحلة</span><b>${p.stage || '-'}</b></div>
@@ -1323,7 +1462,12 @@ function openCustomerDetail(custId) {
                 <div><span class="text-ink-muted font-bold block">المقدم</span><b>${Number(p.down || 0).toLocaleString()}</b></div>
                 <div><span class="text-ink-muted font-bold block">المديونية</span><b class="text-amber-700">${Number(p.debt || 0).toLocaleString()}</b></div>
                 ${p.monthly ? `<div><span class="text-ink-muted font-bold block">القسط</span><b>${Number(p.monthly).toLocaleString()}</b></div>` : ''}
-                ${p.deliveryDate ? `<div><span class="text-ink-muted font-bold block">التسليم</span><b>${p.deliveryDate}</b></div>` : ''}
+                ${p.deliveryDate ? `<div><span class="text-ink-muted font-bold block">التسليم/البيع</span><b>${p.deliveryDate}</b></div>` : ''}
+            </div>
+            <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs bg-blue-50 p-3 rounded border border-blue-100">
+                <div><span class="text-ink-muted font-bold block">رقم الشاسيه</span><b>${p.chassis || '-'}</b></div>
+                <div><span class="text-ink-muted font-bold block">رقم الموتور</span><b>${p.motor || '-'}</b></div>
+                <div><span class="text-ink-muted font-bold block">الموديل</span><b>${p.model || '-'}</b></div>
             </div>
             ${p.createdByName ? `<div class="mt-2 text-[10px] text-gray-400 font-bold">أضيف بواسطة: ${p.createdByName}</div>` : ''}
         </div>`).join('');
@@ -1383,14 +1527,35 @@ function searchCustomerFromDash() {
 function executeCustomerSearch() {
     const q = document.getElementById('mainSearchPhone').value.trim();
     const area = document.getElementById('searchResultsArea');
-    if (!q) { area.innerHTML = `<div class="text-center py-16 panel text-gray-400 font-bold">أدخل كلمة بحث.</div>`; return; }
-    const results = appData.customers.filter(c =>
-        (c.phone && c.phone.includes(q)) || (c.altPhone && c.altPhone.includes(q)) ||
-        (c.whatsapp && c.whatsapp.includes(q)) ||
-        (c.name && c.name.includes(q)) || (c.natId && c.natId.includes(q))
-    );
-    if (results.length === 0) { area.innerHTML = `<div class="text-center py-16 panel text-gray-400 font-bold">لا يوجد نتائج لـ "${q}"</div>`; return; }
-    area.innerHTML = results.map(c => renderCustomerCard(c)).join('');
+    let results;
+    if (!q) {
+        // Show ALL customers, newest first
+        results = [...appData.customers];
+    } else {
+        results = appData.customers.filter(c =>
+            (c.phone && c.phone.includes(q)) || (c.altPhone && c.altPhone.includes(q)) ||
+            (c.whatsapp && c.whatsapp.includes(q)) ||
+            (c.password && c.password.toLowerCase().includes(q.toLowerCase())) ||
+            (c.name && c.name.includes(q)) || (c.natId && c.natId.includes(q))
+        );
+    }
+    // Sort newest first
+    results.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+
+    if (results.length === 0) {
+        area.innerHTML = `
+            <div class="panel p-8 text-center">
+                <i class="fa-solid fa-user-slash text-gray-300 text-5xl mb-3"></i>
+                <div class="text-gray-400 font-bold mb-4">لا يوجد نتائج ${q ? 'لـ "'+q+'"' : ''}</div>
+                <button onclick="openCustomerModal()" class="btn-primary px-6 py-3 text-sm rounded inline-flex items-center gap-2"><i class="fa-solid fa-user-plus"></i> إضافة عميل جديد</button>
+            </div>`;
+        return;
+    }
+
+    const header = q
+        ? `<div class="text-xs font-black text-ink-muted mb-3">نتائج البحث عن "${q}": ${results.length}</div>`
+        : `<div class="text-xs font-black text-ink-muted mb-3">كل العملاء (${results.length}) - الأحدث أولاً</div>`;
+    area.innerHTML = header + results.map(c => renderCustomerCard(c)).join('');
 }
 function renderCustomerCard(c) {
     const map = { 'منفذة': 'badge-green', 'منفذة / تم البيع': 'badge-green', 'جاري التقسيط': 'badge-yellow', 'جاري التقسيط والدراسة': 'badge-yellow', 'مفتوحة': 'badge-blue', 'مفتوحة / تحت التواصل': 'badge-blue', 'مفقودة': 'badge-red', 'مفقودة / ملغاة': 'badge-red' };
@@ -1403,6 +1568,7 @@ function renderCustomerCard(c) {
                 <div>
                     <h3 class="text-lg font-black text-navy-dark mb-2 cursor-pointer hover:text-sky" onclick="openCustomerDetail('${c.id}')">${c.name}</h3>
                     <div class="flex flex-wrap gap-4 text-xs text-gray-600 font-bold">
+                        <span><i class="fa-solid fa-key text-navy ml-1"></i>${c.password || '-'}</span>
                         <span><i class="fa-solid fa-phone text-sky ml-1"></i>${c.phone}</span>
                         ${c.altPhone ? `<span><i class="fa-solid fa-phone text-sky ml-1"></i>${c.altPhone}</span>` : ''}
                         ${c.whatsapp ? `<span><i class="fa-brands fa-whatsapp text-green-500 ml-1"></i>${c.whatsapp}</span>` : ''}
@@ -1452,34 +1618,46 @@ function updateDashboard() {
     if (todayTasks > 0) { nc.classList.remove('hidden'); nc.innerText = todayTasks; }
     else nc.classList.add('hidden');
 }
+
 function renderDashboardTasks() {
     const container = document.getElementById('dashboardTasksList');
     const today = new Date().toISOString().split('T')[0];
+    // Show pending + recently completed
     const tasks = appData.tasks.filter(t => !t.completed && t.date <= today).slice(0, 5);
-    if (tasks.length === 0) { container.innerHTML = `<div class="text-center text-gray-400 text-sm py-8 font-bold border border-dashed border-gray-300 rounded">لا توجد مهام.</div>`; return; }
+    if (tasks.length === 0) { container.innerHTML = `<div class="text-center text-gray-400 text-sm py-8 font-bold border border-dashed border-gray-300 rounded">لا توجد مهام معلقة.</div>`; return; }
     container.innerHTML = tasks.map(t => {
         const c = appData.customers.find(x => x.id === t.customerId);
-        return `<div class="flex items-start gap-3 p-3 bg-page border border-gray-200 rounded">
-            <button onclick="toggleTaskDone('${t.id}')" class="w-6 h-6 border-2 border-sky hover:bg-blue-100 rounded mt-0.5 shrink-0"></button>
-            <div class="flex-1"><div class="font-black text-navy-dark text-sm">${c ? c.name : 'عميل محذوف'}</div><div class="text-xs text-gray-600 mt-1">${t.notes}</div><div class="text-[10px] text-sky font-black mt-1">${t.date}</div></div>
+        return `<div class="flex items-start gap-3 p-3 bg-page border border-gray-200 rounded task-clickable" onclick="openCustomerDetail('${t.customerId}')">
+            <button onclick="event.stopPropagation();toggleTaskDone('${t.id}')" class="w-6 h-6 border-2 border-sky hover:bg-blue-100 rounded mt-0.5 shrink-0"></button>
+            <div class="flex-1"><div class="font-black text-navy-dark text-sm">${c ? c.name : 'عميل محذوف'}</div><div class="text-xs text-gray-600 mt-1">${t.notes}</div><div class="text-[10px] text-sky font-black mt-1">${t.date} • <span class="text-navy">اضغط لفتح ملف العميل</span></div></div>
         </div>`;
     }).join('');
 }
+
 function renderFullTasks() {
     const container = document.getElementById('fullTasksContainer');
     if (!container) return;
     if (appData.tasks.length === 0) { container.innerHTML = `<div class="text-center text-gray-400 text-sm py-12 font-bold border border-dashed border-gray-300 rounded">لا توجد مهام.</div>`; return; }
-    const sorted = [...appData.tasks].sort((a, b) => new Date(a.date) - new Date(b.date));
+    // Sort newest first (by createdAt desc)
+    const sorted = [...appData.tasks].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    const today = new Date().toISOString().split('T')[0];
     container.innerHTML = sorted.map(t => {
         const c = appData.customers.find(x => x.id === t.customerId);
-        const overdue = !t.completed && t.date < new Date().toISOString().split('T')[0];
-        return `<div class="flex items-start gap-3 p-4 ${t.completed ? 'opacity-50 bg-gray-50' : 'bg-white'} border ${overdue ? 'border-red-300 bg-red-50' : 'border-gray-200'} rounded">
-            <button onclick="toggleTaskDone('${t.id}')" class="w-6 h-6 border-2 ${t.completed ? 'bg-green-500 border-green-500 text-white' : 'border-sky'} rounded mt-0.5 shrink-0 flex items-center justify-center">${t.completed ? '<i class="fa-solid fa-check text-xs"></i>' : ''}</button>
+        const overdue = !t.completed && t.date < today;
+        return `<div class="flex items-start gap-3 p-4 ${t.completed ? 'bg-green-50 border-green-300' : overdue ? 'bg-red-50 border-red-300' : 'bg-white border-gray-200'} border rounded task-clickable" onclick="openCustomerDetail('${t.customerId}')">
+            <button onclick="event.stopPropagation();toggleTaskDone('${t.id}')" class="w-6 h-6 border-2 ${t.completed ? 'bg-green-500 border-green-500 text-white' : 'border-sky hover:bg-blue-100'} rounded mt-0.5 shrink-0 flex items-center justify-center">${t.completed ? '<i class="fa-solid fa-check text-xs"></i>' : ''}</button>
             <div class="flex-1"><div class="flex justify-between items-start gap-3">
-                <div><div class="font-black text-navy-dark text-sm">${c ? c.name : 'عميل محذوف'}</div><div class="text-xs text-gray-600 mt-1">${t.notes}</div>${t.byName ? `<div class="text-[10px] text-gray-400 font-bold mt-1">بواسطة: ${t.byName}</div>` : ''}</div>
-                <div class="text-[10px] font-black ${overdue ? 'text-red-600' : 'text-gray-500'} shrink-0">${t.date}${overdue ? ' (متأخرة)' : ''}</div>
+                <div>
+                    <div class="font-black text-navy-dark text-sm ${t.completed ? 'line-through opacity-60' : ''}">${c ? c.name : 'عميل محذوف'}</div>
+                    <div class="text-xs text-gray-600 mt-1">${t.notes}</div>
+                    ${t.byName ? `<div class="text-[10px] text-gray-400 font-bold mt-1">بواسطة: ${t.byName}</div>` : ''}
+                    <div class="text-[10px] text-navy font-bold mt-1">👆 اضغط لفتح ملف العميل</div>
+                </div>
+                <div class="text-[10px] font-black ${overdue ? 'text-red-600' : 'text-gray-500'} shrink-0 text-left">
+                    ${t.date}${overdue ? '<br>(متأخرة)' : ''}${t.completed ? '<br>✓ تمت' : ''}
+                </div>
             </div></div>
-            <button onclick="deleteTask('${t.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash text-xs"></i></button>
+            <button onclick="event.stopPropagation();deleteTask('${t.id}')" class="text-red-400 hover:text-red-600 p-1"><i class="fa-solid fa-trash text-xs"></i></button>
         </div>`;
     }).join('');
 }
