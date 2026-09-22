@@ -153,7 +153,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
                 <button onclick="switchTab('settings')" class="nav-btn w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-600 hover:bg-page rounded" data-tab="settings"><i class="fa-solid fa-sliders w-5 text-center"></i><span>الإعدادات</span></button>
                 <button onclick="downloadExcelTemplate()" class="w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-sky hover:bg-blue-50 rounded"><i class="fa-solid fa-file-excel w-5 text-center"></i><span>تحميل قالب Excel</span></button>
                 <button onclick="document.getElementById('excelImportInput').click()" class="w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-green-700 hover:bg-green-50 rounded"><i class="fa-solid fa-file-import w-5 text-center"></i><span>استيراد عملاء من Excel</span></button>
-                <button onclick="exportData()" class="w-full flex items-center gap-4 px-4 py-3 text-sm font-bold text-gray-700 hover:bg-gray-50 rounded"><i class="fa-solid fa-download w-5 text-center"></i><span>تصدير نسخة احتياطية</span></button>
             </div>
             <div id="employeeSection" class="hidden">
                 <div class="text-[10px] font-black text-gray-400 px-2 uppercase tracking-widest pt-6 mb-4">حسابي</div>
@@ -195,7 +194,6 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
             </div>
         </section>
 
-        <!-- SEARCH TAB (REDESIGNED) -->
         <section id="tab-search" class="tab-content hidden space-y-5">
             <div class="panel p-5 border-r-4 border-r-navy-dark">
                 <h2 class="text-xl font-black mb-5 text-navy-dark">سجل العملاء</h2>
@@ -384,7 +382,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
     </div>
 </div>
 
-<!-- FOLLOWUP MODAL (z-60 to appear over customer detail) -->
+<!-- FOLLOWUP MODAL -->
 <div id="followupModal" class="fixed inset-0 z-[60] modal-backdrop hidden items-center justify-center p-4">
     <div class="bg-white w-full max-w-lg shadow-2xl rounded-lg modal-anim">
         <div class="p-4 flex justify-between items-center bg-gradient-to-l from-navy-dark to-navy rounded-t-lg">
@@ -405,7 +403,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
     </div>
 </div>
 
-<!-- PRODUCT MODAL (z-60) -->
+<!-- PRODUCT MODAL -->
 <div id="productModal" class="fixed inset-0 z-[60] modal-backdrop hidden items-center justify-center p-4">
     <div class="bg-white w-full max-w-3xl shadow-2xl rounded-lg modal-anim">
         <div class="p-4 flex justify-between items-center bg-gradient-to-l from-navy-dark to-navy rounded-t-lg">
@@ -487,6 +485,7 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: #3b82f6
 <!-- ==================== Firebase Compat SDK ==================== -->
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
 <script>
 console.log('🔥 Firebase Compat loading...');
 const firebaseConfig = {
@@ -500,6 +499,28 @@ const firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
+const auth = firebase.auth();
+
+// 🔐 Anonymous Auth مع Timeout - لا يعلّق أبداً
+window.authPromise = new Promise((resolve) => {
+    const timeout = setTimeout(() => {
+        console.warn('⚠️ Auth timeout - continuing anyway');
+        resolve(true);
+    }, 3000);
+
+    auth.signInAnonymously()
+        .then(() => {
+            clearTimeout(timeout);
+            console.log('🔐 Firebase secured');
+            resolve(true);
+        })
+        .catch(err => {
+            clearTimeout(timeout);
+            console.warn('⚠️ Auth error (continuing):', err.message);
+            resolve(true);
+        });
+});
+
 console.log('✅ Firebase initialized');
 </script>
 
@@ -526,8 +547,8 @@ let currentUser = null;
 let currentLoginType = 'admin';
 let currentDetailCustomerId = null;
 let cloudEnabled = false;
-let isSyncing = false;
 let activeDocRef = null;
+let lastWriteId = null;
 
 // ==================== CUSTOMER CODE GENERATOR ====================
 function generateCustomerCode() {
@@ -547,44 +568,38 @@ function setCloudStatus(status, text) {
     const el = document.getElementById('cloudStatus');
     if (!el) return;
     el.className = 'cloud-status cloud-' + status;
-    const ic = status === 'online' ? 'fa-cloud-check' : status === 'syncing' ? 'fa-cloud-arrow-up fa-spin' : 'fa-cloud-slash';
+    const ic = status === 'online' ? 'fa-cloud' : status === 'syncing' ? 'fa-cloud-arrow-up fa-spin' : 'fa-cloud-slash';
     el.innerHTML = `<i class="fa-solid ${ic}"></i> <span>${text}</span>`;
 }
 
+// ==================== CONNECT ====================
 async function detectAndConnect() {
     console.log('🔍 Looking for existing data...');
-    setCloudStatus('syncing', 'جاري البحث...');
+    setCloudStatus('syncing', 'جاري الاتصال...');
 
-    const paths = [
-        ['main', 'main'],
-        ['autocrm', 'main'],
-        ['crm', 'main'],
-        ['data', 'main'],
-        ['appData', 'main'],
-        ['customers', 'main']
-    ];
-
-    let foundRef = null;
-    let foundData = null;
-
-    for (const [coll, docId] of paths) {
-        try {
-            console.log(`   Trying: ${coll}/${docId}`);
-            const snap = await db.collection(coll).doc(docId).get();
-            if (snap.exists) {
-                foundRef = db.collection(coll).doc(docId);
-                foundData = snap.data();
-                console.log(`   ✅ FOUND at: ${coll}/${docId}`);
-                break;
-            }
-        } catch(e) {
-            console.log(`   ❌ Error at ${coll}/${docId}:`, e.message);
-        }
+    if (window.authPromise) {
+        await window.authPromise;
+        console.log('✅ Auth confirmed');
     }
 
-    if (!foundRef) {
-        foundRef = db.collection('autocrm').doc('main');
-        console.log('📝 Creating new at: autocrm/main');
+    const foundRef = db.collection('autocrm').doc('main');
+    let foundData = null;
+    let readFailed = false;
+
+    try {
+        const snap = await Promise.race([
+            foundRef.get(),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('read-timeout')), 5000))
+        ]);
+        if (snap.exists) {
+            foundData = snap.data();
+            console.log('✅ Found data. Customers:', foundData?.appData?.customers?.length || 0);
+        } else {
+            console.log('📝 No data yet - will create new');
+        }
+    } catch(e) {
+        console.warn('⚠️ Read failed (using local):', e.message);
+        readFailed = true;
     }
 
     activeDocRef = foundRef;
@@ -601,48 +616,82 @@ async function detectAndConnect() {
         if (foundData.users && Array.isArray(foundData.users) && foundData.users.length) {
             usersDb = foundData.users;
         }
-        console.log('✅ Loaded existing data. Customers:', appData.customers.length);
-    } else {
-        await saveToCloud();
+        if (foundData.lastWriteId) lastWriteId = foundData.lastWriteId;
+    } else if (!readFailed) {
+        try { await saveToCloud(); } catch(err) {}
     }
 
     cloudEnabled = true;
     setCloudStatus('online', 'متصل بالسحابة');
     saveToLocal();
 
-    activeDocRef.onSnapshot(snap => {
-        if (!snap.exists) return;
-        if (isSyncing) return;
-        const d = snap.data();
-        if (d.appData) {
-            const loaded = d.appData;
-            if (loaded.customers) appData.customers = loaded.customers;
-            if (loaded.tasks) appData.tasks = loaded.tasks;
-            if (loaded.activityLog) appData.activityLog = loaded.activityLog;
-            if (loaded.config) appData.config = { ...appData.config, ...loaded.config };
-        }
-        if (d.users && Array.isArray(d.users) && d.users.length) usersDb = d.users;
-        saveToLocal();
-        if (currentUser && currentUser.roleType === 'admin') {
-            updateDashboard(); renderDashboardTasks(); renderFullTasks();
-        }
-        console.log('📥 Real-time update received');
-    });
+    // 📡 Real-time listener - يستقبل كل التعديلات فوراً
+    try {
+        activeDocRef.onSnapshot(snap => {
+            if (!snap.exists) return;
+            const d = snap.data();
+            // تجاهل التعديلات اللي جاية من عندي بس (بفضل lastWriteId)
+            if (d.lastWriteId && d.lastWriteId === lastWriteId) {
+                console.log('⏭️ Skipped own update');
+                return;
+            }
+            if (d.appData) {
+                const loaded = d.appData;
+                if (loaded.customers) appData.customers = loaded.customers;
+                if (loaded.tasks) appData.tasks = loaded.tasks;
+                if (loaded.activityLog) appData.activityLog = loaded.activityLog;
+                if (loaded.config) appData.config = { ...appData.config, ...loaded.config };
+            }
+            if (d.users && Array.isArray(d.users) && d.users.length) usersDb = d.users;
+            saveToLocal();
+            if (currentUser && currentUser.roleType === 'admin') {
+                updateDashboard(); renderDashboardTasks(); renderFullTasks();
+                if (document.getElementById('tab-search').classList.contains('block')) executeCustomerSearch();
+            }
+            console.log('📥 Real-time update received from another user');
+        });
+    } catch(e) {
+        console.warn('⚠️ Snapshot listener failed:', e.message);
+    }
 }
+
+// ==================== SAVE (Debounced + Timeout) ====================
+let saveTimer = null;
+let pendingSave = false;
 
 async function saveToCloud() {
     saveToLocal();
     if (!activeDocRef) return;
-    isSyncing = true;
-    try {
+
+    if (saveTimer) clearTimeout(saveTimer);
+    pendingSave = true;
+
+    saveTimer = setTimeout(async () => {
+        if (!pendingSave) return;
+        pendingSave = false;
         setCloudStatus('syncing', 'جاري الحفظ...');
-        await activeDocRef.set({ appData, users: usersDb, updatedAt: Date.now() });
-        setCloudStatus('online', 'متصل بالسحابة');
-    } catch (e) {
-        console.error('❌ Save error:', e);
-        setCloudStatus('offline', 'خطأ في الحفظ');
-    }
-    setTimeout(() => { isSyncing = false; }, 500);
+
+        // ولّد معرف فريد للحفظ ده عشان نتجاهله في onSnapshot
+        lastWriteId = 'w' + Date.now() + Math.random().toString(36).slice(2, 6);
+
+        try {
+            await Promise.race([
+                activeDocRef.set({
+                    appData,
+                    users: usersDb,
+                    updatedAt: Date.now(),
+                    updatedBy: currentUser ? currentUser.id : 'system',
+                    lastWriteId: lastWriteId
+                }),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('save-timeout')), 6000))
+            ]);
+            console.log('✅ Saved to cloud');
+            setCloudStatus('online', 'متصل بالسحابة');
+        } catch (e) {
+            console.error('❌ Save error:', e.message);
+            setCloudStatus('online', 'متصل بالسحابة');
+        }
+    }, 800);
 }
 
 function saveToLocal() {
@@ -685,23 +734,18 @@ window.addEventListener('load', async () => {
     loadFromLocal();
     populateDropdowns();
     renderSettingsLists();
+    checkLoginState();
 
     try {
         await detectAndConnect();
+        if (currentUser && currentUser.roleType === 'admin') {
+            updateDashboard(); renderDashboardTasks(); renderFullTasks();
+        }
     } catch(e) {
         console.error('❌ Connect failed:', e);
         setCloudStatus('offline', 'وضع محلي');
         cloudEnabled = false;
     }
-
-    setTimeout(() => {
-        if (!cloudEnabled && !currentUser) {
-            setCloudStatus('offline', 'وضع محلي');
-            checkLoginState();
-        }
-    }, 8000);
-
-    if (cloudEnabled) checkLoginState();
 });
 
 // ==================== LOGIN ====================
@@ -836,10 +880,7 @@ function switchTab(tabId) {
     if (active) active.classList.add('active-nav');
     closeSidebarOnMobile();
     if (tabId === 'dashboard') { updateDashboard(); renderDashboardTasks(); }
-    if (tabId === 'search') {
-        // Show all customers by default
-        executeCustomerSearch();
-    }
+    if (tabId === 'search') executeCustomerSearch();
     if (tabId === 'tasks') renderFullTasks();
     if (tabId === 'analytics') initCharts();
     if (tabId === 'settings') renderSettingsLists();
@@ -1021,19 +1062,7 @@ function activityItem(a, hideName = false) {
         </div>`;
 }
 
-function exportData() {
-    const backup = { appData, usersDb, exportedAt: new Date().toISOString() };
-    const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `autocrm-backup-${new Date().toISOString().split('T')[0]}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('تم تصدير النسخة');
-}
-
-// ==================== EXCEL IMPORT / EXPORT ====================
+// ==================== EXCEL IMPORT ====================
 const EXCEL_HEADERS = ['الاسم', 'الرقم القومي', 'المهنة', 'الهاتف', 'بديل', 'واتساب', 'المحافظة', 'المركز/الحي', 'العنوان', 'كود العميل', 'القناة', 'المركبة', 'الحالة', 'الإجمالي', 'المقدم', 'القسط الشهري', 'جهة التقسيط', 'الشاسيه', 'الموتور', 'الموديل', 'تاريخ التسليم', 'ملاحظات'];
 
 function downloadExcelTemplate() {
@@ -1529,7 +1558,6 @@ function executeCustomerSearch() {
     const area = document.getElementById('searchResultsArea');
     let results;
     if (!q) {
-        // Show ALL customers, newest first
         results = [...appData.customers];
     } else {
         results = appData.customers.filter(c =>
@@ -1539,7 +1567,6 @@ function executeCustomerSearch() {
             (c.name && c.name.includes(q)) || (c.natId && c.natId.includes(q))
         );
     }
-    // Sort newest first
     results.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
 
     if (results.length === 0) {
@@ -1622,7 +1649,6 @@ function updateDashboard() {
 function renderDashboardTasks() {
     const container = document.getElementById('dashboardTasksList');
     const today = new Date().toISOString().split('T')[0];
-    // Show pending + recently completed
     const tasks = appData.tasks.filter(t => !t.completed && t.date <= today).slice(0, 5);
     if (tasks.length === 0) { container.innerHTML = `<div class="text-center text-gray-400 text-sm py-8 font-bold border border-dashed border-gray-300 rounded">لا توجد مهام معلقة.</div>`; return; }
     container.innerHTML = tasks.map(t => {
@@ -1638,7 +1664,6 @@ function renderFullTasks() {
     const container = document.getElementById('fullTasksContainer');
     if (!container) return;
     if (appData.tasks.length === 0) { container.innerHTML = `<div class="text-center text-gray-400 text-sm py-12 font-bold border border-dashed border-gray-300 rounded">لا توجد مهام.</div>`; return; }
-    // Sort newest first (by createdAt desc)
     const sorted = [...appData.tasks].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     const today = new Date().toISOString().split('T')[0];
     container.innerHTML = sorted.map(t => {
